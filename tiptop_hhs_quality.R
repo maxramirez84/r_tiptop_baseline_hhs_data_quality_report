@@ -297,10 +297,11 @@ trialProfileOfArea = function(hhs_data, study_area) {
       "HH head/other refused to consent the interview"
     )
     colnames(trial_profile) = paste0("C", colnames(trial_profile))
- 
+    #browser()
+    # Consistency checks within the trial profile
     for(i in colnames(trial_profile)) {
-      trial_profile[i] = cell_spec(
-        x      = trial_profile[,i],
+      trial_profile[c(1, 2, 12), i] = cell_spec(
+        x      = trial_profile[c(1, 2, 12),i],
         format ="html",
         color  = 
           ifelse(trial_profile[2, i] + trial_profile[12, i] != trial_profile[1, i], "red", "")
