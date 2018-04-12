@@ -1,0 +1,211 @@
+```{r parameters, include=FALSE}
+source("tiptop_hhs_quality.R")
+source("tokens.R")
+
+# Data retrieval: {api, file}
+data_retrieval_mode = "api"
+# API
+api_url   = redcap_api_url
+api_token = api_token_mad # TIPTOP HHS Baseline Madagascar (MALGACHE)
+# File
+file_prefix = "TIPTOPHHSBaselineMad"
+file_date   ="2018-03-23"
+file_time   ="08:30"
+
+# Study area description
+study_areas                    = c("Mananjary", "Toliary 2")
+study_areas_ids                = c("mananjary", "toliary_2")
+sample_size_area_1             = 284
+household_to_be_visited_area_1 = 1278
+sample_size_area_2             = 284
+household_to_be_visited_area_2 = 1278
+
+data_timestamp = dataTimestamp(data_retrieval_mode, file_date, file_time)
+```
+
+---
+title: "TIPTOP Baseline HHS Data Quality Report: MADAGASCAR"
+author: "Máximo Ramírez Robles"
+date: `r data_timestamp`
+output:
+  html_document: default
+  pdf_document: default
+---
+
+<style>
+.main-container{
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.col-container{
+  overflow: auto;
+  position: relative;
+}
+.col-left{
+  float: left;
+  width: 50%;
+}
+.col-left-40{
+  float: left;
+  width: 40%;
+}
+.col-right{
+  float: right;
+  width: 50%;
+}
+.col-bottom{
+  position: absolute;
+  bottom: 0px;
+}
+.big-number{
+  font-size: 95px;
+}
+.medium-number{
+  font-size: 40px;
+}
+.text-center{
+  text-align: center;
+}
+.text-right{
+  text-align: right;
+}
+.text-left{
+  text-align: left;
+}
+.vertical-small-padding{
+  padding: 0 15px 0 15px;
+}
+.minnor-header{
+  font-size: 18px;
+}
+.text-color-medium-value{
+  color: #585859;
+}
+.text-color-big-value{
+  color: #31708f;
+}
+</style>
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 18, fig.height = 7.5)
+
+hhs_data = readData(data_retrieval_mode, file_prefix, file_date, file_time, api_url, api_token)
+
+# Global variables
+last_record_date = lastRecordDate(hhs_data)
+number_of_records = numberOfRecords(hhs_data)
+```
+
+## FIELD DATA COLLECTION PROGRESS
+
+The database contains `r number_of_records` records (last record from `r last_record_date`).
+
+Data collection by [MANISA](http://www.manisa.mg).
+
+```{r recruited_women_area, echo=FALSE}
+consented   = numberOfparticipantsWhoConsented(hhs_data)
+recruitment = recruitmentRate(hhs_data, sample_size_area_1, sample_size_area_2)
+```
+
+### General Progress
+
+<div class="col-left text-center">
+  Women Interviewed @ `r study_areas[1]`
+
+  <span class="big-number">`r recruitment[1]`%</span>
+
+  `r consented[1]` / `r sample_size_area_1`
+</div>
+
+<div class="col-right text-center">
+  Women Interviewed @ `r study_areas[2]`
+
+  <span class="big-number">`r recruitment[2]`%</span>
+
+  `r consented[2]` / `r sample_size_area_2`
+</div>
+
+
+```{r visited_households_area, echo=FALSE}
+visitedHouseholdsArea(hhs_data, household_to_be_visited_area_1, household_to_be_visited_area_2, 
+                      study_areas)
+```
+
+<p style="page-break-before: always">
+
+### Progress in `r study_areas[1]`
+
+```{r progress_area_1, echo=FALSE}
+progressOfArea(hhs_data, study_area = 1, interval = 10, required_visits_mean = 60)
+```
+
+### Progress in `r study_areas[2]`
+
+```{r progress_area_2, echo=FALSE}
+progressOfArea(hhs_data, study_area = 2, interval = 10, required_visits_mean = 60)
+```
+
+<p style="page-break-before: always">
+
+## TRIAL PROFILE
+
+### Profile of `r study_areas[1]`
+
+```{r trial_profile_area_1, echo=FALSE, results="asis"}
+trialProfileOfArea(hhs_data, study_area = 1)
+```
+
+<p style="page-break-before: always">
+
+### Profile of `r study_areas[2]`
+
+```{r trial_profile_area_2, echo=FALSE, results="asis"}
+trialProfileOfArea(hhs_data, study_area = 2)
+```
+
+<p style="page-break-before: always">
+
+## MAIN INDICATORS
+
+<span style="color: red"><b>Important:</b></span> These indicators are computed by using raw data. 
+Therefore, data has not passed any verification and/or cleaning process. They should not be used for 
+analysis purposes. They are presented to address any possible data issue.
+
+### SP Indicators
+
+```{r sp_indicators, echo=FALSE}
+ciptp_knowledge      = cIPTpKnowledgeRate(hhs_data)
+ciptp_administration = cIPTpAdministrationRate(hhs_data)
+
+SPIndicators(hhs_data, study_areas)
+```
+
+<div class="col-left text-center">
+  <div class="col-container">
+  <span class="minnor-header">SP service provided in `r study_areas[1]` by CHW (c-IPTp)</span>
+  
+  <div class="col-left col-bottom text-right vertical-small-padding text-color-medium-value">
+  <span class="medium-number">`r ciptp_knowledge[1]`%</span><br/>
+  Women who know
+  </div>
+  <div class="col-right text-left vertical-small-padding text-color-big-value">
+  <span class="big-number">`r ciptp_administration[1]`%</span><br/>
+  Women who took
+  </div>
+  </div>
+  <br/>
+  <div class="col-container">
+  <span class="minnor-header">SP service provided in `r study_areas[2]` by CHW (c-IPTp)</span>
+  
+  <div class="col-left col-bottom text-right vertical-small-padding text-color-medium-value">
+  <span class="medium-number">`r ciptp_knowledge[2]`%</span><br/>
+  Women who know
+  </div>
+  <div class="col-right text-left vertical-small-padding text-color-big-value">
+  <span class="big-number">`r ciptp_administration[2]`%</span><br/>
+  Women who took
+  </div>
+  </div>
+</div>

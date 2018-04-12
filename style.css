@@ -1,0 +1,26 @@
+.main-container{
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.col-left{
+  float: left;
+  width: 50%;
+}
+.col-left-40{
+  float: left;
+  width: 40%;
+}
+.col-right{
+  float: right;
+  width: 50%;
+}
+.big-number{
+  font-size: 95px;
+}
+.text-center{
+  text-align: center;
+}
+.text-right{
+  text-align: right;
+}

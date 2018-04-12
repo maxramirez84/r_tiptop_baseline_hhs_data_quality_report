@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+TIPTOPHHSBaselineMad_DATA_*.csv
+TIPTOPHHSBaselineNig_DATA_*.csv
+tiptop_bl_hhs_quality_report_*.html
+tokens.R
