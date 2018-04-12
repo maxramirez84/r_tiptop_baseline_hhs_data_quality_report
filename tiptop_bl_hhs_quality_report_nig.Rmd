@@ -98,6 +98,11 @@ last_record_date = lastRecordDate(hhs_data)
 number_of_records = numberOfRecords(hhs_data)
 ```
 
+```{r out.width="30px", echo=FALSE}
+knitr::include_graphics("github_icon.png")
+```
+[Report GitHub Repository](https://github.com/maxramirez84/r_tiptop_baseline_hhs_data_quality_report)
+
 ## FIELD DATA COLLECTION PROGRESS
 
 The database contains `r number_of_records` records (last record from `r last_record_date`).
