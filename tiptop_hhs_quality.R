@@ -299,24 +299,78 @@ trialProfileOfArea = function(hhs_data, study_area) {
     colnames(trial_profile) = paste0("C", colnames(trial_profile))
     #browser()
     # Consistency checks within the trial profile
+    trial_profile_checked = trial_profile
     for(i in colnames(trial_profile)) {
-      trial_profile[c(1, 2, 12), i] = cell_spec(
-        x      = trial_profile[c(1, 2, 12),i],
-        format ="html",
-        color  = 
-          ifelse(trial_profile[2, i] + trial_profile[12, i] != trial_profile[1, i], "red", "")
+      # non_interviewed HH = empty + refused
+      trial_profile_checked[c(12, 13, 15), i] = cell_spec(
+        x        = trial_profile[c(12, 13, 15),i],
+        format   ="html",
+        color    = 
+          ifelse(trial_profile[13, i] + trial_profile[15, i] != trial_profile[12, i], "red", ""),
+        tooltip  = 
+          ifelse(trial_profile[13, i] + trial_profile[15, i] != trial_profile[12, i], 
+                 "NOT interviewed HH must be equal to the sum of empty/destroyed + refused", "")
+      )
+      
+      # women = eligible + non_eligible
+      trial_profile_checked[c(3, 4, 5), i] = cell_spec(
+        x        = trial_profile[c(3, 4, 5),i],
+        format   ="html",
+        color    = 
+          ifelse(trial_profile[4, i] + trial_profile[5, i] != trial_profile[3, i], "red", ""),
+        tooltip  = 
+          ifelse(trial_profile[4, i] + trial_profile[5, i] != trial_profile[3, i], 
+                 "Women must be equal to the sum of eligibles + NON eligibles", "")
+      )
+      
+      # non_interviwed women = denied + absent + unabled
+      trial_profile_checked[c(8, 9, 10, 11), i] = cell_spec(
+        x        = trial_profile[c(8, 9, 10, 11),i],
+        format   ="html",
+        color    = 
+          ifelse(trial_profile[9, i] + trial_profile[10, i] + trial_profile[11, i] != trial_profile[8, i], "red", ""),
+        tooltip  = 
+          ifelse(trial_profile[9, i] + trial_profile[10, i] + trial_profile[11, i] != trial_profile[8, i], 
+                 "NON interviewed women must be equal to the sum of denied + absent + unabled", "")
+      )
+      
+      # women selected = interviewed + non_interviewed
+      trial_profile_checked[c(6, 7, 8), i] = cell_spec(
+        x        = trial_profile[c(6, 7, 8),i],
+        format   ="html",
+        color    = 
+          ifelse(trial_profile[7, i] + trial_profile[8, i] != trial_profile[6, i], "red", ""),
+        tooltip  = 
+          ifelse(trial_profile[7, i] + trial_profile[8, i] != trial_profile[6, i], 
+                 "Women selected must be equal to the sum of interviewed + NON interviewed", "")
+      )
+      
+      # visited HH = interviewed + non_interviewed
+      trial_profile_checked[c(1, 2, 12), i] = cell_spec(
+        x        = trial_profile[c(1, 2, 12),i],
+        format   ="html",
+        color    = 
+          ifelse(trial_profile[2, i] + trial_profile[12, i] != trial_profile[1, i], "red", ""),
+        tooltip  = 
+          ifelse(trial_profile[2, i] + trial_profile[12, i] != trial_profile[1, i], 
+                 "Visited HH must be equal to the sum of interviewed + NOT interviewed", "")
       )
     }
     
-    kable(trial_profile, "html", escape = F) %>%
+    kable(trial_profile_checked, "html", escape = F) %>%
       kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 12) %>%
       row_spec(0, bold = T, color = "white", background = "#494949") %>%
       row_spec(c(1, 2, 3, 12), bold = T) %>%
       add_indent(c(9, 10, 11)) %>%
-      footnote(general = "", symbol = c(
-        "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
-        "HH head availability is not required to proceed with the interview as long as any other adult consents"
-      ))
+      footnote(
+        general_title = "Notes:",
+        general = "Colored cells are consistency errors. Hover over these cells to display a tooltip 
+          with the error message. Please, refer to the provided Data Queries Sheet.", 
+        symbol = c(
+          "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
+          "HH head availability is not required to proceed with the interview as long as any other adult consents"
+        )
+      )
   } else {
     print("There is no data.")
   }
