@@ -301,10 +301,13 @@ trialProfileOfArea = function(hhs_data, study_area) {
     # Consistency checks within the trial profile
     for(i in colnames(trial_profile)) {
       trial_profile[c(1, 2, 12), i] = cell_spec(
-        x      = trial_profile[c(1, 2, 12),i],
-        format ="html",
-        color  = 
-          ifelse(trial_profile[2, i] + trial_profile[12, i] != trial_profile[1, i], "red", "")
+        x        = trial_profile[c(1, 2, 12),i],
+        format   ="html",
+        color    = 
+          ifelse(trial_profile[2, i] + trial_profile[12, i] != trial_profile[1, i], "red", ""),
+        tooltip  = 
+          ifelse(trial_profile[2, i] + trial_profile[12, i] != trial_profile[1, i], 
+                 "Visited HH must be equal to the sum of interviewed + NOT interviewed", "")
       )
     }
     
@@ -313,10 +316,15 @@ trialProfileOfArea = function(hhs_data, study_area) {
       row_spec(0, bold = T, color = "white", background = "#494949") %>%
       row_spec(c(1, 2, 3, 12), bold = T) %>%
       add_indent(c(9, 10, 11)) %>%
-      footnote(general = "", symbol = c(
-        "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
-        "HH head availability is not required to proceed with the interview as long as any other adult consents"
-      ))
+      footnote(
+        general_title = "Notes:",
+        general = "Colored cells are consistency errors. Hover over these cells to display a tooltip 
+          with the error message. Please, refer to the provided Data Queries Sheet.", 
+        symbol = c(
+          "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
+          "HH head availability is not required to proceed with the interview as long as any other adult consents"
+        )
+      )
   } else {
     print("There is no data.")
   }
