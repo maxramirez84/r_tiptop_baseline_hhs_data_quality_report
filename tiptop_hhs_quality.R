@@ -214,6 +214,8 @@ progressOfArea = function(hhs_data, study_area, interval, required_visits_mean) 
 
 # Tables -------------------------------------------------------------------------------------------
 trialProfileOfArea = function(hhs_data, study_area) {
+  maximum_number_of_columns = 29
+  font_size = 10
   study_area_column = paste0("cluster_", study_areas_ids[study_area])
   
   number_hh_selected_visited = table(hhs_data[study_area_column])
@@ -361,21 +363,54 @@ trialProfileOfArea = function(hhs_data, study_area) {
                  "Visited HH must be equal to the sum of interviewed + NOT interviewed", "")
       )
     }
-    
-    kable(trial_profile_checked, "html", escape = F) %>%
-      kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 12) %>%
-      row_spec(0, bold = T, color = "white", background = "#494949") %>%
-      row_spec(c(1, 2, 3, 13), bold = T) %>%
-      add_indent(c(9, 10, 11, 12)) %>%
-      footnote(
-        general_title = "Notes:",
-        general = "Colored cells are consistency errors. Hover over these cells to display a tooltip 
-          with the error message. Please, refer to the provided Data Queries Sheet.", 
-        symbol = c(
-          "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
-          "HH head availability is not required to proceed with the interview as long as any other adult consents"
+    #browser()
+    if(ncol(trial_profile_checked) > maximum_number_of_columns) {
+      number_of_columns = ncol(trial_profile_checked)
+      middle = as.integer(number_of_columns / 2)
+      
+      print(kable(trial_profile_checked[,1:(middle + 2)], "html", escape = F) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                        font_size = font_size) %>%
+        row_spec(0, bold = T, color = "white", background = "#494949") %>%
+        row_spec(c(1, 2, 3, 13), bold = T) %>%
+        add_indent(c(9, 10, 11, 12))
+      )
+      print(kable(trial_profile_checked[,(middle + 3):number_of_columns], "html", escape = F) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 
+                        font_size) %>%
+        row_spec(0, bold = T, color = "white", background = "#494949") %>%
+        row_spec(c(1, 2, 3, 13), bold = T) %>%
+        add_indent(c(9, 10, 11, 12)) %>%
+        footnote(
+          general_title = "Notes:",
+          general = "Colored cells are consistency errors. Hover over these cells to display a 
+          tooltip with the error message. Please, refer to the provided Data Queries Sheet.", 
+          symbol = c(
+            "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
+            "HH head availability is not required to proceed with the interview as long as any other 
+            adult consents"
+          )
         )
       )
+    } else {
+      print(kable(trial_profile_checked, "html", escape = F) %>%
+        kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                        font_size = font_size) %>%
+        row_spec(0, bold = T, color = "white", background = "#494949") %>%
+        row_spec(c(1, 2, 3, 13), bold = T) %>%
+        add_indent(c(9, 10, 11, 12)) %>%
+        footnote(
+          general_title = "Notes:",
+          general = "Colored cells are consistency errors. Hover over these cells to display a 
+          tooltip with the error message. Please, refer to the provided Data Queries Sheet.", 
+          symbol = c(
+            "Eligible woman: woman that meets selection criteria 1 and selection criteria 2", 
+            "HH head availability is not required to proceed with the interview as long as any other 
+            adult consents"
+          )
+        )
+      )
+    }
   } else {
     print("There is no data.")
   }
