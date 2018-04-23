@@ -484,7 +484,8 @@ duplicatedRecords = function() {
   columns = c("district", "cluster", "household", "latitude", "longitude", "hh_initials", "consent", 
               "interviewer_id", "interview_date")
   duplicated_records_summary = duplicated_records[
-    order(duplicated_records$cluster, duplicated_records$household), columns]
+    order(duplicated_records$district, duplicated_records$cluster, duplicated_records$household), 
+    columns]
   
   duplicated_records_summary$consent[is.na(duplicated_records_summary$consent)] = "No"
   duplicated_records_summary$consent[duplicated_records_summary$consent == 1]   = "Yes"
