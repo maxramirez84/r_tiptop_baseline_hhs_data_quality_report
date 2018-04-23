@@ -469,7 +469,7 @@ SPIndicators = function(hhs_data, study_areas) {
     add_indent(c(3, 4, 5, 6, 7, 8))
 }
 
-duplicatedRecords = function() {
+duplicatedRecords = function(hhs_data) {
   #id_columns = hhs_data[c("cluster_kenge", "cluster_bulungu", "household")]
   study_area_columns = paste0("cluster_", study_areas_ids)
   
@@ -504,7 +504,7 @@ duplicatedRecords = function() {
     scroll_box(height = "250px")
 }
 
-duplicatedHouseholds = function() {
+duplicatedHouseholds = function(hhs_data) {
   #browser()
   study_area_columns = paste0("cluster_", study_areas_ids)
   
@@ -542,4 +542,83 @@ duplicatedHouseholds = function() {
                   font_size = 12) %>%
     row_spec(0, bold = T, color = "white", background = "#494949") %>%
     scroll_box(height = "250px")
+}
+
+duplicatesSummary = function(hhs_data, study_area) {
+  #browser()
+  font_size = 10
+  maximum_number_of_columns = 29
+  study_area_column = paste0("cluster_", study_areas_ids[study_area])
+  
+  non_interviewed_visits_number_area_1 = 
+    table(hhs_data[is.na(hhs_data$consent) | hhs_data$consent != 1, study_area_column])
+  interviewed_number_area_1 = 
+    table(hhs_data[hhs_data$consent == 1, study_area_column])
+  
+  duplicated_records = hhs_data[duplicated(hhs_data[2:ncol(hhs_data)]), ]
+  
+  non_interviewed_duplicated_records_area_1 = 
+    table(duplicated_records[is.na(duplicated_records$consent) | duplicated_records$consent != 1, 
+                             study_area_column])
+  interviewed_duplicated_records_area_1 = 
+    table(duplicated_records[duplicated_records$consent == 1, study_area_column])
+  
+  id_columns = hhs_data[c(study_area_column, "household")]
+  duplicated_hh = hhs_data[duplicated(id_columns) | duplicated(id_columns, fromLast = T), ]
+  rerecorded_hh = duplicated_hh[!(duplicated_hh$record_id %in% duplicated_records$record_id), ]
+  
+  rerecorded_hh_area_1 = table(rerecorded_hh[study_area_column])
+  
+  non_interviewed = union(non_interviewed_visits_number_area_1, 
+                          non_interviewed_duplicated_records_area_1)
+  interviewed = union(interviewed_number_area_1, interviewed_duplicated_records_area_1)
+  
+  duplicates_summary = union(
+    non_interviewed_visits_number_area_1,
+    interviewed_number_area_1,
+    non_interviewed_duplicated_records_area_1,
+    interviewed_duplicated_records_area_1,
+    non_interviewed[1,] - non_interviewed[2,],
+    interviewed[1,] - interviewed[2,],
+    rerecorded_hh_area_1
+  )
+  row.names(duplicates_summary) = c(
+    "NON interviewed HH", 
+    "Interviewed HH", 
+    "Duplicated records of NON interviewed HH",
+    "Duplicated records of interviewed HH",
+    "NON interviewed HH without duplicated records",
+    "Interviewed HH without duplicated records",
+    "Duplicated households"
+  )
+  colnames(duplicates_summary) = paste0("C", colnames(duplicates_summary))
+  
+  duplicates_summary_reduced = duplicates_summary[, duplicates_summary[3,] != 0 | 
+                                                    duplicates_summary[4,] != 0 | 
+                                                    duplicates_summary[7,] != 0]
+  
+  if(ncol(duplicates_summary_reduced) > maximum_number_of_columns) {
+    number_of_columns = ncol(duplicates_summary_reduced)
+    middle = as.integer(number_of_columns / 2)
+    
+    print(kable(duplicates_summary_reduced[,1:(middle + 2)], "html", escape = F) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                    font_size = font_size) %>%
+      row_spec(0, bold = T, color = "white", background = "#494949") %>%
+      row_spec(c(2, 6), bold = T)
+    )
+    print(kable(duplicates_summary_reduced[,(middle + 3):number_of_columns], "html", escape = F) %>%
+            kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                          font_size = font_size) %>%
+            row_spec(0, bold = T, color = "white", background = "#494949") %>%
+            row_spec(c(2, 6), bold = T)
+    )
+  } else {
+    print(kable(duplicates_summary_reduced, "html", escape = F) %>%
+            kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                          font_size = font_size) %>%
+            row_spec(0, bold = T, color = "white", background = "#494949") %>%
+            row_spec(c(2, 6), bold = T)
+    )
+  }
 }

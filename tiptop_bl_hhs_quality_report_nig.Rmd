@@ -174,12 +174,24 @@ trialProfileOfArea(hhs_data, study_area = 2)
 
 ## DUPLICATES
 
+### Summary of duplicates in `r study_areas[1]`
+
+```{r duplicates_summary_area_1, echo=FALSE, results="asis"}
+duplicatesSummary(hhs_data, study_area = 1)
+```
+
+### Summary of duplicates in `r study_areas[2]`
+
+```{r duplicates_summary_area_2, echo=FALSE, results="asis"}
+duplicatesSummary(hhs_data, study_area = 2)
+```
+
 ### Duplicated Households
 Households recorded / interviewed more than once by the same or different field workers. Or same
 household ID used more than once for different interviews.
 
 ```{r duplicated_households, echo=FALSE}
-duplicatedHouseholds()
+duplicatedHouseholds(hhs_data)
 ```
 
 ### Duplicated Records
@@ -187,7 +199,7 @@ duplicatedHouseholds()
 Records in which all variables are exactly the same. I.e. records sent more than once.
 
 ```{r duplicated_records, echo=FALSE}
-duplicatedRecords()
+duplicatedRecords(hhs_data)
 ```
 
 <p style="page-break-before: always">
