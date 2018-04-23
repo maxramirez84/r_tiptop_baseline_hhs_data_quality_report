@@ -487,17 +487,57 @@ duplicatedRecords = function() {
     order(duplicated_records$district, duplicated_records$cluster, duplicated_records$household), 
     columns]
   
-  duplicated_records_summary$consent[is.na(duplicated_records_summary$consent)] = "No"
+  duplicated_records_summary$consent[is.na(duplicated_records_summary$consent)] = "Not asked"
+  duplicated_records_summary$consent[duplicated_records_summary$consent == 0]   = "No"
   duplicated_records_summary$consent[duplicated_records_summary$consent == 1]   = "Yes"
   
   duplicated_records_summary$district[duplicated_records_summary$district == 1] = study_areas[1]
   duplicated_records_summary$district[duplicated_records_summary$district == 2] = study_areas[2]
   
-  colnames(duplicated_records_summary) = c("District", "Cluster", "Household ID", "Latitude", 
-                                           "Longitude", "Head Initials", "Consent", 
-                                           "Interviewer ID", "Interview Date")
+  colnames(duplicated_records_summary) = c("District", "Cluster", "HH ID", "Latitude", "Longitude", 
+                                           "Head Initials", "Consent", "Int. ID", "Int. Date")
   #browser()
   kable(duplicated_records_summary, "html", escape = F) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                  font_size = 12) %>%
+    row_spec(0, bold = T, color = "white", background = "#494949") %>%
+    scroll_box(height = "250px")
+}
+
+duplicatedHouseholds = function() {
+  #browser()
+  study_area_columns = paste0("cluster_", study_areas_ids)
+  
+  duplicated_records = hhs_data[duplicated(hhs_data[2:ncol(hhs_data)]) | 
+                                  duplicated(hhs_data[2:ncol(hhs_data)], fromLast = T), ]
+  
+  id_columns = hhs_data[c(study_area_columns[1], study_area_columns[2], "household")]
+  duplicated_hh = hhs_data[duplicated(id_columns) | duplicated(id_columns, fromLast = T), ]
+  rerecorded_hh = duplicated_hh[!(duplicated_hh$record_id %in% duplicated_records$record_id), ]
+  
+  rerecorded_hh$cluster[!is.na(rerecorded_hh[study_area_columns[1]])] = 
+    rerecorded_hh[!is.na(rerecorded_hh[study_area_columns[1]]), study_area_columns[1]]
+  rerecorded_hh$cluster[!is.na(rerecorded_hh[study_area_columns[2]])] = 
+    rerecorded_hh[!is.na(rerecorded_hh[study_area_columns[2]]), study_area_columns[2]]
+  
+  columns = c("district", "cluster", "household", "latitude", "longitude", "hh_initials", "consent", 
+              "end_last_pregnancy", "reported_age", "interviewer_id", "interview_date")
+  rerecorded_hh_summary = rerecorded_hh[
+    order(rerecorded_hh$district, rerecorded_hh$cluster, rerecorded_hh$household), 
+    columns]
+  
+  rerecorded_hh_summary$consent[is.na(rerecorded_hh_summary$consent)] = "Not asked"
+  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 0]   = "No"
+  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 1]   = "Yes"
+  
+  rerecorded_hh_summary$district[rerecorded_hh_summary$district == 1] = study_areas[1]
+  rerecorded_hh_summary$district[rerecorded_hh_summary$district == 2] = study_areas[2]
+  
+  colnames(rerecorded_hh_summary) = c("District", "Cluster", "HH ID", "Latitude", "Longitude", 
+                                      "Head Initials", "Consent", "End Pregnancy", "Age", "Int. ID", 
+                                      "Int. Date")
+  #browser()
+  kable(rerecorded_hh_summary, "html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
                   font_size = 12) %>%
     row_spec(0, bold = T, color = "white", background = "#494949") %>%

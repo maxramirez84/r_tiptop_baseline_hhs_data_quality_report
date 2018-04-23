@@ -174,11 +174,19 @@ trialProfileOfArea(hhs_data, study_area = 2)
 
 ## DUPLICATES
 
+### Duplicated Households
+Households recorded / interviewed more than once by the same or different field workers. Or same
+household ID used more than once for different interviews.
+
+```{r duplicated_households, echo=FALSE}
+duplicatedHouseholds()
+```
+
 ### Duplicated Records
 
 Records in which all variables are exactly the same. I.e. records sent more than once.
 
-```{r duplicates, echo=FALSE}
+```{r duplicated_records, echo=FALSE}
 duplicatedRecords()
 ```
 
