@@ -500,5 +500,6 @@ duplicatedRecords = function() {
   kable(duplicated_records_summary, "html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
                   font_size = 12) %>%
-    row_spec(0, bold = T, color = "white", background = "#494949")
+    row_spec(0, bold = T, color = "white", background = "#494949") %>%
+    scroll_box(height = "250px")
 }
