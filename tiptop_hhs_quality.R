@@ -468,3 +468,36 @@ SPIndicators = function(hhs_data, study_areas) {
     row_spec(c(1, 2, 9, 10), bold = T) %>%
     add_indent(c(3, 4, 5, 6, 7, 8))
 }
+
+duplicatedRecords = function() {
+  #id_columns = hhs_data[c("cluster_kenge", "cluster_bulungu", "household")]
+  study_area_columns = paste0("cluster_", study_areas_ids)
+  
+  duplicated_records = hhs_data[duplicated(hhs_data[2:ncol(hhs_data)]) | 
+                                  duplicated(hhs_data[2:ncol(hhs_data)], fromLast = T), ]
+  
+  duplicated_records$cluster[!is.na(duplicated_records[study_area_columns[1]])] = 
+    duplicated_records[!is.na(duplicated_records[study_area_columns[1]]), study_area_columns[1]]
+  duplicated_records$cluster[!is.na(duplicated_records[study_area_columns[2]])] = 
+    duplicated_records[!is.na(duplicated_records[study_area_columns[2]]), study_area_columns[2]]
+  
+  columns = c("district", "cluster", "household", "latitude", "longitude", "hh_initials", "consent", 
+              "interviewer_id", "interview_date")
+  duplicated_records_summary = duplicated_records[
+    order(duplicated_records$cluster, duplicated_records$household), columns]
+  
+  duplicated_records_summary$consent[is.na(duplicated_records_summary$consent)] = "No"
+  duplicated_records_summary$consent[duplicated_records_summary$consent == 1]   = "Yes"
+  
+  duplicated_records_summary$district[duplicated_records_summary$district == 1] = study_areas[1]
+  duplicated_records_summary$district[duplicated_records_summary$district == 2] = study_areas[2]
+  
+  colnames(duplicated_records_summary) = c("District", "Cluster", "Household ID", "Latitude", 
+                                           "Longitude", "Head Initials", "Consent", 
+                                           "Interviewer ID", "Interview Date")
+  #browser()
+  kable(duplicated_records_summary, "html", escape = F) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                  font_size = 12) %>%
+    row_spec(0, bold = T, color = "white", background = "#494949")
+}

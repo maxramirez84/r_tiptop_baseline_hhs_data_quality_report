@@ -172,6 +172,18 @@ trialProfileOfArea(hhs_data, study_area = 2)
 
 <p style="page-break-before: always">
 
+## DUPLICATES
+
+### Duplicated Records
+
+Records in which all variables are exactly the same. I.e. records sent more than once.
+
+```{r duplicates, echo=FALSE}
+duplicatedRecords()
+```
+
+<p style="page-break-before: always">
+
 ## MAIN INDICATORS
 
 <span style="color: red"><b>Important:</b></span> These indicators are computed by using raw data. 
