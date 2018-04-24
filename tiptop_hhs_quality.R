@@ -566,7 +566,10 @@ duplicatesSummary = function(hhs_data, study_area) {
     
     id_columns = hhs_data[c(study_area_column, "household")]
     duplicated_hh = hhs_data[duplicated(id_columns) | duplicated(id_columns, fromLast = T), ]
-    rerecorded_hh = duplicated_hh[!(duplicated_hh$record_id %in% duplicated_records$record_id), ]
+    duplicated_records_from_last = hhs_data[duplicated(hhs_data[2:ncol(hhs_data)]) | 
+                                              duplicated(hhs_data[2:ncol(hhs_data)], fromLast = T), ]
+    rerecorded_hh = duplicated_hh[!(duplicated_hh$record_id %in% 
+                                      duplicated_records_from_last$record_id), ]
     
     rerecorded_hh_area = table(rerecorded_hh[study_area_column])
     
