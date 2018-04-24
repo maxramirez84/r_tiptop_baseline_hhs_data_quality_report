@@ -154,7 +154,7 @@ progressOfArea(hhs_data, study_area = 2, interval = 10, required_visits_mean = 6
 
 <p style="page-break-before: always">
 
-## TRIAL PROFILE
+## STUDY PROFILE
 
 ### Profile of `r study_areas[1]`
 
