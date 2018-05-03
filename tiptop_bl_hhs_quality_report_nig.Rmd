@@ -16,9 +16,9 @@ file_time   ="13:33"
 study_areas                    = c("Ohaukwu (Ebonyi State)", "Akure South (Ondo State)")
 study_areas_ids                = c("ohaukwu", "akure_south")
 sample_size_area_1             = 744
-household_to_be_visited_area_1 = 3307
-sample_size_area_2             = 257
-household_to_be_visited_area_2 = 1143
+household_to_be_visited_area_1 = 3305
+sample_size_area_2             = 277
+household_to_be_visited_area_2 = 1230
 
 data_timestamp = dataTimestamp(data_retrieval_mode, file_date, file_time)
 ```
