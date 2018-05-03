@@ -137,14 +137,17 @@ color_palette = c("gray8", "gray35", "gray90")
 
 # Visited Households per Area
 visitedHouseholdsArea = function(hhs_data, household_to_be_visited_area_1, 
-                                 household_to_be_visited_area_2, study_areas) {
+                                 household_to_be_visited_area_2, sample_size_area_1, 
+                                 sample_size_area_2, study_areas) {
+  #browser()
   interval = 100
   max_x_axis = max(household_to_be_visited_area_1, household_to_be_visited_area_2) + interval * 5
   
   consented = numberOfparticipantsWhoConsented(hhs_data)
+  recruitment = recruitmentRate(hhs_data, sample_size_area_1, sample_size_area_2)
   
-  visits_area_1 = table(hhs_data$district)[1]
-  visits_area_2 = table(hhs_data$district)[2]
+  visits_area_1 = table(hhs_data$district)['1']
+  visits_area_2 = table(hhs_data$district)['2']
   visits_number = c(
     if(is.na(visits_area_1)) 0 else visits_area_1,
     if(is.na(visits_area_2)) 0 else visits_area_2
