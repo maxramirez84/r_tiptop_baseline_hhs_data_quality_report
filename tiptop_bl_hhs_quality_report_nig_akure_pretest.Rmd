@@ -93,6 +93,11 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 18, fig.height = 7.5)
 
 hhs_data = readData(data_retrieval_mode, file_prefix, file_date, file_time, api_url, api_token)
 
+# Filter dataset
+# Interviews completed during pre-test days in Akure (day 1 and 2 of May 2018)
+hhs_data = hhs_data[hhs_data$interview_date >= '2018-05-01 00:00:00' & 
+                      hhs_data$interview_date <= '2018-05-02 23:59:59', ] 
+
 # Global variables
 last_record_date = lastRecordDate(hhs_data)
 number_of_records = numberOfRecords(hhs_data)

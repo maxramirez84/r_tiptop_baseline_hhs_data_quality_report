@@ -135,7 +135,7 @@ recruitment = recruitmentRate(hhs_data, sample_size_area_1, sample_size_area_2)
 
 ```{r visited_households_area, echo=FALSE}
 visitedHouseholdsArea(hhs_data, household_to_be_visited_area_1, household_to_be_visited_area_2, 
-                      study_areas)
+                      sample_size_area_1, sample_size_area_2, study_areas)
 ```
 
 <p style="page-break-before: always">
