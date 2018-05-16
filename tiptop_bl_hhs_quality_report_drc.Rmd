@@ -212,6 +212,7 @@ analysis purposes. They are presented to address any possible data issue.
 
 ### SP Indicators
 
+<div class="col-container">
 ```{r sp_indicators, echo=FALSE}
 ciptp_knowledge      = cIPTpKnowledgeRate(hhs_data)
 ciptp_administration = cIPTpAdministrationRate(hhs_data)
@@ -246,3 +247,11 @@ SPIndicators(hhs_data, study_areas)
   </div>
   </div>
 </div>
+
+</div>
+
+### ANC Indicators
+
+```{r anc_indicators, echo=FALSE}
+ANCIndicators(hhs_data, study_areas)
+```

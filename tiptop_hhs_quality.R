@@ -440,10 +440,13 @@ SPIndicators = function(hhs_data, study_areas) {
     if('4' %in% rownames(sp_doses)) sp_doses['4',] else c(0, 0),
     if('5' %in% rownames(sp_doses)) sp_doses['5',] else c(0, 0),
     if('6' %in% rownames(sp_doses)) sp_doses['6',] else c(0, 0),
+    (if('7' %in% rownames(sp_doses)) sp_doses['7',] else c(0, 0)) +
+      (if('8' %in% rownames(sp_doses)) sp_doses['8',] else c(0, 0)) +
+      (if('9' %in% rownames(sp_doses)) sp_doses['9',] else c(0, 0)),
     if('0' %in% rownames(sp)) sp['0',] else c(0, 0), 
     if('2' %in% rownames(sp)) sp['2',] else c(0, 0)
   )
-  for(i in 2:10) {
+  for(i in 2:11) {
     sp_adherence[i,] = paste(
       sp_adherence[i,],
       paste0("(", round((as.integer(sp_adherence[i,]) / consented) * 100, 2), "%", ")")
@@ -459,6 +462,7 @@ SPIndicators = function(hhs_data, study_areas) {
     "Women that took exactly 4 doses of SP",
     "Women that took exactly 5 doses of SP",
     "Women that took exactly 6 doses of SP",
+    "Women that took more than 6 doses of SP",
     "Women that didn't take SP",
     "Women that didn't know if they took SP"
   )
@@ -468,8 +472,63 @@ SPIndicators = function(hhs_data, study_areas) {
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 12, 
                   full_width = F, position = "float_right") %>%
     row_spec(0, bold = T, color = "white", background = "#494949") %>%
-    row_spec(c(1, 2, 9, 10), bold = T) %>%
-    add_indent(c(3, 4, 5, 6, 7, 8))
+    row_spec(c(1, 2, 10, 11), bold = T) %>%
+    add_indent(c(3, 4, 5, 6, 7, 8, 9))
+}
+
+ANCIndicators = function(hhs_data, study_areas) {
+  consented = numberOfparticipantsWhoConsented(hhs_data)
+  
+  anc_area_1 = table(hhs_data$attend_anc[hhs_data$district == 1])
+  anc_area_2 = table(hhs_data$attend_anc[hhs_data$district == 2])
+  anc = t(union(anc_area_1, anc_area_2))
+  
+  anc_visits_area_1 = table(hhs_data$anc_visits_number[hhs_data$district == 1])
+  anc_visits_area_2 = table(hhs_data$anc_visits_number[hhs_data$district == 2])
+  anc_visits = t(union(anc_visits_area_1, anc_visits_area_2))
+  #browser()
+  anc_attendance = union(
+    consented,
+    if('1' %in% rownames(anc)) anc['1',] else c(0, 0),
+    if('1' %in% rownames(anc_visits)) anc_visits['1',] else c(0, 0),
+    if('2' %in% rownames(anc_visits)) anc_visits['2',] else c(0, 0),
+    if('3' %in% rownames(anc_visits)) anc_visits['3',] else c(0, 0),
+    if('4' %in% rownames(anc_visits)) anc_visits['4',] else c(0, 0),
+    if('5' %in% rownames(anc_visits)) anc_visits['5',] else c(0, 0),
+    if('6' %in% rownames(anc_visits)) anc_visits['6',] else c(0, 0),
+    (if('7' %in% rownames(anc_visits)) anc_visits['7',] else c(0, 0)) + 
+      (if('8' %in% rownames(anc_visits)) anc_visits['8',] else c(0, 0)) +
+      (if('9' %in% rownames(anc_visits)) anc_visits['9',] else c(0, 0)) +
+      (if('10' %in% rownames(anc_visits)) anc_visits['10',] else c(0, 0)),
+    if('0' %in% rownames(anc)) anc['0',] else c(0, 0)
+  )
+  for(i in 2:10) {
+    anc_attendance[i,] = paste(
+      anc_attendance[i,],
+      paste0("(", round((as.integer(anc_attendance[i,]) / consented) * 100, 2), "%", ")")
+    )
+  }
+  
+  row.names(anc_attendance) = c(
+    "Women interviewed",
+    "Women that attended ANC clinic",
+    "Women that attended exactly once to ANC clinic",
+    "Women that attended exactly twice to ANC clinic",
+    "Women that attended exactly 3 times to ANC clinic",
+    "Women that attended exactly 4 times to ANC clinic",
+    "Women that attended exactly 5 times to ANC clinic",
+    "Women that attended exactly 6 times to ANC clinic",
+    "Women that attended more than 6 times to ANC clinic",
+    "Women that didn't attend to ANC clinic"
+  )
+  colnames(anc_attendance) = study_areas
+  
+  kable(anc_attendance, "html", escape = F) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 12, 
+                  full_width = T) %>%
+    row_spec(0, bold = T, color = "white", background = "#494949") %>%
+    row_spec(c(1, 2, 10), bold = T) %>%
+    add_indent(c(3, 4, 5, 6, 7, 8, 9))
 }
 
 duplicatedRecords = function(hhs_data) {
