@@ -1,6 +1,7 @@
 library(kableExtra)
 library(redcapAPI)
 library(dplyr)
+library(stringdist)
 
 # Auxiliar functions -------------------------------------------------------------------------------
 
@@ -129,6 +130,40 @@ cIPTpAdministrationRate = function(hhs_data) {
   names(ciptp_administration) = c(1, 2)
   
   return(ciptp_administration)
+}
+
+# Criteria for deciding when two records are the same interview or a different one:
+# 
+# IF consent_r1 != consent_r2 THEN DIFFERENT_INTERVIEWS
+# -- GPS --
+# ELSE IF days_between(end_last_pregnancy_r1, end_last_pregnancy_r2) > P1 THEN DIFFERENT_INTERVIEWS
+# -- AGE --
+# ELSE IF levenshtein_distance(hh_initials_r1, hh_initials_r2) > P2 THEN DIFFERENT_INTERVIEWS
+# ELSE SAME_INTERVIEW
+#
+#
+sameInterview = function(record1, record2) {
+  p1 = 15 # days
+  p2 = 3  # levenshtein distance
+  
+  # Criteria 1: CONSENT
+  if(record1$consent != record2$consent) {
+    return(F)
+  # Cirteria 2: END LAST PREGNANCY DATE  
+  } else if(!is.na(record1$end_last_pregnancy) & !is.na(record2$end_last_pregnancy)) {
+    if(abs(difftime(record1$end_last_pregnancy, record2$end_last_pregnancy, units = c("days"))) > p1)
+      return(F)
+  } else if(!is.na(record1$end_last_pregnancy) | !is.na(record2$end_last_pregnancy)) {
+    return(F)
+  # Criteria 3: HOUSEHOLD HEAD INITIALS  
+  } else if(!is.na(record1$hh_initials) & !is.na(record2$hh_initials)) {  
+    if(stringdist(record1$hh_initials, record2$hh_initials, method = "lv") > p2)
+      return(F)
+  } else if(!is.na(record1$hh_initials) | !is.na(record2$hh_initials)) {
+    return(F)
+  }
+  
+  return(T)
 }
 
 # Plots --------------------------------------------------------------------------------------------
@@ -573,10 +608,29 @@ duplicatedHouseholds = function(hhs_data) {
   duplicated_records = hhs_data[duplicated(hhs_data[2:ncol(hhs_data)]) | 
                                   duplicated(hhs_data[2:ncol(hhs_data)], fromLast = T), ]
   
-  id_columns = hhs_data[c(study_area_columns[1], study_area_columns[2], "household")]
+  key_columns = c(study_area_columns[1], study_area_columns[2], "household")
+  id_columns = hhs_data[key_columns]
   duplicated_hh = hhs_data[duplicated(id_columns) | duplicated(id_columns, fromLast = T), ]
   rerecorded_hh = duplicated_hh[!(duplicated_hh$record_id %in% duplicated_records$record_id), ]
   
+  # Check if there is reused household IDs which are also duplicates
+  rerecorded_and_duplicated = intersect(rerecorded_hh[key_columns], 
+                                        duplicated_records[key_columns])
+  if(nrow(rerecorded_and_duplicated) > 0) {
+    for(i in 1:nrow(rerecorded_and_duplicated)) {
+      if(!is.na(rerecorded_and_duplicated[i, study_area_columns[1]]))
+        rerecorded_hh = rbind(rerecorded_hh, duplicated_records[
+          duplicated_records[study_area_columns[1]] == 
+            rerecorded_and_duplicated[i, study_area_columns[1]] &
+            duplicated_records$household == rerecorded_and_duplicated$household[i], ][1,])
+      else if(!is.na(rerecorded_and_duplicated[i, study_area_columns[2]]))
+        rerecorded_hh = rbind(rerecorded_hh, duplicated_records[
+          duplicated_records[study_area_columns[2]] == 
+            rerecorded_and_duplicated[i, study_area_columns[2]] &
+            duplicated_records$household == rerecorded_and_duplicated$household[i], ][1,])
+    }
+  }
+    
   rerecorded_hh$cluster[!is.na(rerecorded_hh[study_area_columns[1]])] = 
     rerecorded_hh[!is.na(rerecorded_hh[study_area_columns[1]]), study_area_columns[1]]
   rerecorded_hh$cluster[!is.na(rerecorded_hh[study_area_columns[2]])] = 
@@ -595,9 +649,59 @@ duplicatedHouseholds = function(hhs_data) {
   rerecorded_hh_summary$district[rerecorded_hh_summary$district == 1] = study_areas[1]
   rerecorded_hh_summary$district[rerecorded_hh_summary$district == 2] = study_areas[2]
   
+  #browser()
+  # Disambiguate records
+  rerecorded_hh_summary$duplicated = NA
+  current_district = rerecorded_hh_summary$district[1]
+  current_cluster = rerecorded_hh_summary$cluster[1]
+  current_household = rerecorded_hh_summary$household[1]
+  records_in_conflict = c(1)
+  for(i in 2:nrow(rerecorded_hh_summary)) {
+    if(rerecorded_hh_summary$district[i] == current_district & 
+       rerecorded_hh_summary$cluster[i] == current_cluster &
+       ((is.na(rerecorded_hh_summary$household[i]) & is.na(current_household)) | 
+        (!is.na(rerecorded_hh_summary$household[i]) & 
+         rerecorded_hh_summary$household[i] == current_household))) {
+      records_in_conflict = c(records_in_conflict, i)
+    } else {
+      for(j in 1:(length(records_in_conflict) - 1)) {
+        for(k in (j+1):length(records_in_conflict)) {
+          result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
+                                 rerecorded_hh_summary[records_in_conflict[k], ])
+          
+          if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[j]]) | 
+             rerecorded_hh_summary$duplicated[records_in_conflict[j]] != T)
+            rerecorded_hh_summary$duplicated[records_in_conflict[j]] = result
+          if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[k]]) | 
+             rerecorded_hh_summary$duplicated[records_in_conflict[k]] != T)
+            rerecorded_hh_summary$duplicated[records_in_conflict[k]] = result
+        }
+      }
+      
+      current_district = rerecorded_hh_summary$district[i]
+      current_cluster = rerecorded_hh_summary$cluster[i]
+      current_household = rerecorded_hh_summary$household[i]
+      records_in_conflict = c(i)
+    }
+  }
+  #browser()
+  for(j in 1:(length(records_in_conflict) - 1)) {
+    for(k in (j+1):length(records_in_conflict)) {
+      result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
+                             rerecorded_hh_summary[records_in_conflict[k], ])
+      
+      if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[j]]) | 
+         rerecorded_hh_summary$duplicated[records_in_conflict[j]] != T)
+        rerecorded_hh_summary$duplicated[records_in_conflict[j]] = result
+      if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[k]]) | 
+         rerecorded_hh_summary$duplicated[records_in_conflict[k]] != T)
+        rerecorded_hh_summary$duplicated[records_in_conflict[k]] = result
+    }
+  }
+  
   colnames(rerecorded_hh_summary) = c("District", "Cluster", "HH ID", "Latitude", "Longitude", 
                                       "Head Initials", "Consent", "End Pregnancy", "Age", "Int. ID", 
-                                      "Int. Date")
+                                      "Int. Date", "Duplicated")
   #browser()
   kable(rerecorded_hh_summary, "html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
