@@ -2,6 +2,7 @@ library(kableExtra)
 library(redcapAPI)
 library(dplyr)
 library(stringdist)
+library(geosphere)
 
 # Auxiliar functions -------------------------------------------------------------------------------
 
@@ -135,34 +136,53 @@ cIPTpAdministrationRate = function(hhs_data) {
 # Criteria for deciding when two records are the same interview or a different one:
 # 
 # IF consent_r1 != consent_r2 THEN DIFFERENT_INTERVIEWS
-# -- GPS --
-# ELSE IF days_between(end_last_pregnancy_r1, end_last_pregnancy_r2) > P1 THEN DIFFERENT_INTERVIEWS
-# -- AGE --
-# ELSE IF levenshtein_distance(hh_initials_r1, hh_initials_r2) > P2 THEN DIFFERENT_INTERVIEWS
+# IF haversine_distance(gps_r1, gps_r2) > P1 THEN DIFFERENT_INTERVIEWS
+# ELSE IF days_between(end_last_pregnancy_r1, end_last_pregnancy_r2) > P2 THEN DIFFERENT_INTERVIEWS
+# ELSE IF levenshtein_distance(hh_initials_r1, hh_initials_r2) > P3 THEN DIFFERENT_INTERVIEWS
 # ELSE SAME_INTERVIEW
 #
 #
 sameInterview = function(record1, record2) {
-  p1 = 15 # days
-  p2 = 3  # levenshtein distance
+  p1 = 25 # meters
+  p2 = 15 # days
+  p3 = 3  # levenshtein distance
+  
+  gps_distance = NA
+  # Compute GPS Haversine distance
+  if(!is.na(record1$longitude) & !is.na(record1$latitude) & 
+     !is.na(record2$longitude) & !is.na(record2$latitude))
+    gps_distance = distm(c(record1$longitude, record1$latitude), 
+                         c(record2$longitude, record2$latitude), fun = distHaversine)
+  
+  diff_end_last_pregnancy_dates = NA
+  # Compute difference between end of last pregnancy dates
+  if(!is.na(record1$end_last_pregnancy) & !is.na(record2$end_last_pregnancy))
+    diff_end_last_pregnancy_dates = abs(difftime(record1$end_last_pregnancy, 
+                                                 record2$end_last_pregnancy, units = c("days")))
+  
+  initials_distance = NA
+  # Compute string Levenshtein distance between household head initials
+  if(!is.na(record1$hh_initials) & !is.na(record2$hh_initials))
+    initials_distance = stringdist(record1$hh_initials, record2$hh_initials, method = "lv")
+  else if((!is.na(record1$hh_initials) & is.na(record2$hh_initials)) | 
+          (is.na(record1$hh_initials) & !is.na(record2$hh_initials)))
+    initials_distance = 999999
   
   # Criteria 1: CONSENT
-  if(record1$consent != record2$consent) {
+  if(record1$consent != record2$consent)
     return(F)
-  # Cirteria 2: END LAST PREGNANCY DATE  
-  } else if(!is.na(record1$end_last_pregnancy) & !is.na(record2$end_last_pregnancy)) {
-    if(abs(difftime(record1$end_last_pregnancy, record2$end_last_pregnancy, units = c("days"))) > p1)
+  # Criteria 2: GPS COORDINATES
+  else if(!is.na(gps_distance) & gps_distance> p1)
+    return(F)
+  # Criteria 3: END LAST PREGNANCY DATE  
+  else if(!is.na(diff_end_last_pregnancy_dates) & diff_end_last_pregnancy_dates > p2)
       return(F)
-  } else if(!is.na(record1$end_last_pregnancy) | !is.na(record2$end_last_pregnancy)) {
+  else if(!is.na(record1$end_last_pregnancy) | !is.na(record2$end_last_pregnancy))
     return(F)
-  # Criteria 3: HOUSEHOLD HEAD INITIALS  
-  } else if(!is.na(record1$hh_initials) & !is.na(record2$hh_initials)) {  
-    if(stringdist(record1$hh_initials, record2$hh_initials, method = "lv") > p2)
+  # Criteria 4: HOUSEHOLD HEAD INITIALS  
+  else if(!is.na(initials_distance) & initials_distance > p3)
       return(F)
-  } else if(!is.na(record1$hh_initials) | !is.na(record2$hh_initials)) {
-    return(F)
-  }
-  
+
   return(T)
 }
 
@@ -636,8 +656,9 @@ duplicatedHouseholds = function(hhs_data) {
   rerecorded_hh$cluster[!is.na(rerecorded_hh[study_area_columns[2]])] = 
     rerecorded_hh[!is.na(rerecorded_hh[study_area_columns[2]]), study_area_columns[2]]
   
-  columns = c("district", "cluster", "household", "latitude", "longitude", "hh_initials", "consent", 
-              "end_last_pregnancy", "reported_age", "interviewer_id", "interview_date")
+  columns = c("district", "cluster", "household", "latitude", "longitude", "hh_initials", "hh_sex", 
+              "hh_available", "consent", "end_last_pregnancy", "reported_age", "interviewer_id", 
+              "interview_date")
   rerecorded_hh_summary = rerecorded_hh[
     order(rerecorded_hh$district, rerecorded_hh$cluster, rerecorded_hh$household), 
     columns]
@@ -648,6 +669,13 @@ duplicatedHouseholds = function(hhs_data) {
   
   rerecorded_hh_summary$district[rerecorded_hh_summary$district == 1] = study_areas[1]
   rerecorded_hh_summary$district[rerecorded_hh_summary$district == 2] = study_areas[2]
+  
+  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 0] = "F"
+  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 1] = "M"
+  
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 0] = "No"
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 1] = "Yes"
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 2] = "Empty HH"
   
   #browser()
   # Disambiguate records
@@ -699,9 +727,12 @@ duplicatedHouseholds = function(hhs_data) {
     }
   }
   
-  colnames(rerecorded_hh_summary) = c("District", "Cluster", "HH ID", "Latitude", "Longitude", 
-                                      "Head Initials", "Consent", "End Pregnancy", "Age", "Int. ID", 
-                                      "Int. Date", "Duplicated")
+  rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == F] = "F"
+  rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == T] = "T"
+  
+  colnames(rerecorded_hh_summary) = c("District", "C.", "HH ID", "Lat.", "Lng.", "H. Initials", 
+                                      "Sex", "Available", "Cons.", "End Preg.", "Age", "Int. ID", 
+                                      "Int. Date", "D.")
   #browser()
   kable(rerecorded_hh_summary, "html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
