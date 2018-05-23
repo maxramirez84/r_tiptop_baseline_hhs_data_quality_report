@@ -176,7 +176,7 @@ stringdistByToken =  function(a, b, method) {
 # Criteria for deciding when two records are the same interview or a different one:
 # 
 # IF consent_r1 != consent_r2 THEN DIFFERENT_INTERVIEWS
-# IF hh_available_r1 != hh_available_r2 THEN DIFFERENT_INTERVIEWS
+# OFF - IF hh_available_r1 != hh_available_r2 THEN DIFFERENT_INTERVIEWS
 # IF haversine_distance(gps_r1, gps_r2) > P1 THEN DIFFERENT_INTERVIEWS
 # ELSE IF days_between(end_last_pregnancy_r1, end_last_pregnancy_r2) > P2 THEN DIFFERENT_INTERVIEWS
 # ELSE IF levenshtein_distance(hh_initials_r1, hh_initials_r2) > P3 THEN DIFFERENT_INTERVIEWS
@@ -216,8 +216,8 @@ sameInterview = function(record1, record2) {
   if(record1$consent != record2$consent)
     return(F)
   # Criteria 2: HOUSEHOLD HEAD AVAILABILITY
-  if(record1$hh_available != record2$hh_available)
-    return(F)
+  # if(record1$hh_available != record2$hh_available)
+  #  return(F)
   # Criteria 3: GPS COORDINATES
   else if(!is.na(gps_distance) & gps_distance> p1)
     return(F)
