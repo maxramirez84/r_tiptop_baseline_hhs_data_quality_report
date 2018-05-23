@@ -133,6 +133,44 @@ cIPTpAdministrationRate = function(hhs_data) {
   return(ciptp_administration)
 }
 
+# Compute string distance but token by token rather than the whole string
+stringdistByToken =  function(a, b, method) {
+  #browser()
+  split = " "
+  a_tokens = strsplit(a, split = split)[[1]]
+  b_tokens = strsplit(b, split = split)[[1]]
+  
+  small_string = a_tokens
+  big_string = b_tokens
+  if(length(b_tokens) < length(a_tokens)) {
+    small_string = b_tokens
+    big_string = a_tokens
+  }
+    
+  
+  str_dist = 0
+  for(i in 1:length(small_string)) {
+    min_dist = Inf
+    
+    for(j in 1:length(big_string)) {
+      token_dist = stringdist(small_string[i], big_string[j], method = method)
+      if(token_dist < min_dist)
+        min_dist = token_dist
+    }
+    
+    str_dist = str_dist + min_dist
+  }
+  
+  # Penalty
+  words_diff = abs(length(small_string) - length(big_string))
+  order_diff = 0
+  for(i in 1:length(small_string))
+    if(small_string[i] != big_string[i])
+      order_diff = order_diff + 1
+  
+  return(str_dist + words_diff + order_diff)
+}
+
 # Criteria for deciding when two records are the same interview or a different one:
 # 
 # IF consent_r1 != consent_r2 THEN DIFFERENT_INTERVIEWS
@@ -162,15 +200,15 @@ sameInterview = function(record1, record2) {
                                                  record2$end_last_pregnancy, units = c("days")))
   else if((!is.na(record1$end_last_pregnancy) & is.na(record2$end_last_pregnancy)) | 
           (is.na(record1$end_last_pregnancy) & !is.na(record2$end_last_pregnancy)))
-    diff_end_last_pregnancy_dates = 999999 # infinity
+    diff_end_last_pregnancy_dates = Inf
   
   initials_distance = NA
   # Compute string Levenshtein distance between household head initials
   if(!is.na(record1$hh_initials) & !is.na(record2$hh_initials))
-    initials_distance = stringdist(record1$hh_initials, record2$hh_initials, method = "lv")
+    initials_distance = stringdistByToken(record1$hh_initials, record2$hh_initials, method = "lv")
   else if((!is.na(record1$hh_initials) & is.na(record2$hh_initials)) | 
           (is.na(record1$hh_initials) & !is.na(record2$hh_initials)))
-    initials_distance = 999999 # infinity
+    initials_distance = Inf
   
   # Criteria 1: CONSENT
   if(record1$consent != record2$consent)
