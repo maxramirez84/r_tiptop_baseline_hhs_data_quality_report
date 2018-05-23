@@ -168,7 +168,9 @@ stringdistByToken =  function(a, b, method) {
     if(small_string[i] != big_string[i])
       order_diff = order_diff + 1
   
-  return(str_dist + words_diff + order_diff)
+  dist_by_token = str_dist + words_diff + order_diff
+  dist = stringdist(a, b, method = method)
+  return(min(dist, dist_by_token))
 }
 
 # Criteria for deciding when two records are the same interview or a different one:
