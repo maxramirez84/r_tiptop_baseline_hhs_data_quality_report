@@ -187,7 +187,13 @@ sameInterview = function(record1, record2) {
   p1 = 25 # meters
   p2 = 15 # days
   p3 = 3  # levenshtein distance
-  
+  #browser()
+  consent1 = record1$consent
+  if(is.na(consent1))
+    consent1 = "Not asked"
+  consent2 = record2$consent
+  if(is.na(consent2))
+    consent2 = "Not asked"
   gps_distance = NA
   # Compute GPS Haversine distance
   if(!is.na(record1$longitude) & !is.na(record1$latitude) & 
@@ -197,12 +203,16 @@ sameInterview = function(record1, record2) {
   
   diff_end_last_pregnancy_dates = NA
   # Compute difference between end of last pregnancy dates
-  if(!is.na(record1$end_last_pregnancy) & !is.na(record2$end_last_pregnancy))
-    diff_end_last_pregnancy_dates = abs(difftime(record1$end_last_pregnancy, 
-                                                 record2$end_last_pregnancy, units = c("days")))
-  else if((!is.na(record1$end_last_pregnancy) & is.na(record2$end_last_pregnancy)) | 
-          (is.na(record1$end_last_pregnancy) & !is.na(record2$end_last_pregnancy)))
+  if(!is.na(record1$end_last_pregnancy) & !is.na(record2$end_last_pregnancy)) {
+    if(consent1 == 1 & consent2 == 1)
+      diff_end_last_pregnancy_dates = abs(difftime(record1$end_last_pregnancy, 
+                                                   record2$end_last_pregnancy, units = c("days")))
+  } else if(((!is.na(record1$end_last_pregnancy) & consent1 == 1 ) & 
+             is.na(record2$end_last_pregnancy)) | 
+            (is.na(record1$end_last_pregnancy) & 
+             (!is.na(record2$end_last_pregnancy) & consent2 == 1 ))) {
     diff_end_last_pregnancy_dates = Inf
+  }
   
   initials_distance = NA
   # Compute string Levenshtein distance between household head initials
@@ -213,7 +223,7 @@ sameInterview = function(record1, record2) {
     initials_distance = Inf
   
   # Criteria 1: CONSENT
-  if(record1$consent != record2$consent)
+  if(consent1 != consent2)
     return(F)
   # Criteria 2: HOUSEHOLD HEAD AVAILABILITY
   # if(record1$hh_available != record2$hh_available)
@@ -708,20 +718,6 @@ duplicatedHouseholds = function(hhs_data) {
     order(rerecorded_hh$district, rerecorded_hh$cluster, rerecorded_hh$household), 
     columns]
   
-  rerecorded_hh_summary$consent[is.na(rerecorded_hh_summary$consent)] = "Not asked"
-  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 0]   = "No"
-  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 1]   = "Yes"
-  
-  rerecorded_hh_summary$district[rerecorded_hh_summary$district == 1] = study_areas[1]
-  rerecorded_hh_summary$district[rerecorded_hh_summary$district == 2] = study_areas[2]
-  
-  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 0] = "F"
-  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 1] = "M"
-  
-  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 0] = "No"
-  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 1] = "Yes"
-  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 2] = "Empty HH"
-  
   #browser()
   # Disambiguate records
   rerecorded_hh_summary$duplicated = NA
@@ -739,6 +735,7 @@ duplicatedHouseholds = function(hhs_data) {
     } else {
       for(j in 1:(length(records_in_conflict) - 1)) {
         for(k in (j+1):length(records_in_conflict)) {
+          #browser()
           result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
                                  rerecorded_hh_summary[records_in_conflict[k], ])
           
@@ -771,6 +768,20 @@ duplicatedHouseholds = function(hhs_data) {
         rerecorded_hh_summary$duplicated[records_in_conflict[k]] = result
     }
   }
+  
+  rerecorded_hh_summary$consent[is.na(rerecorded_hh_summary$consent)] = "Not asked"
+  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 0]   = "No"
+  rerecorded_hh_summary$consent[rerecorded_hh_summary$consent == 1]   = "Yes"
+  
+  rerecorded_hh_summary$district[rerecorded_hh_summary$district == 1] = study_areas[1]
+  rerecorded_hh_summary$district[rerecorded_hh_summary$district == 2] = study_areas[2]
+  
+  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 0] = "F"
+  rerecorded_hh_summary$hh_sex[rerecorded_hh_summary$hh_sex == 1] = "M"
+  
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 0] = "No"
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 1] = "Yes"
+  rerecorded_hh_summary$hh_available[rerecorded_hh_summary$hh_available == 2] = "Empty HH"
   
   rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == F] = "F"
   rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == T] = "T"
