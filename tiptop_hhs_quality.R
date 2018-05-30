@@ -815,10 +815,13 @@ duplicatesSummary = function(hhs_data, study_area) {
     
     rerecorded_hh_area = table(rerecorded_hh[study_area_column])
     
+    rerecorded_hh_interviewed = rerecorded_hh[rerecorded_hh$consent == 1, ]
+    rerecorded_hh_interviewed_area = table(rerecorded_hh_interviewed[study_area_column])
+    
     non_interviewed = union(non_interviewed_visits_number_area, 
                             non_interviewed_duplicated_records_area)
     interviewed = union(interviewed_number_area, interviewed_duplicated_records_area)
-    
+     #browser()
     duplicates_summary = union(
       non_interviewed_visits_number_area,
       interviewed_number_area,
@@ -826,16 +829,18 @@ duplicatesSummary = function(hhs_data, study_area) {
       interviewed_duplicated_records_area,
       non_interviewed[1,] - non_interviewed[2,],
       interviewed[1,] - interviewed[2,],
-      rerecorded_hh_area
+      rerecorded_hh_area,
+      rerecorded_hh_interviewed_area
     )
     row.names(duplicates_summary) = c(
       "NON interviewed HH", 
       "Interviewed HH", 
-      "Duplicated records of NON interviewed HH",
-      "Duplicated records of interviewed HH",
+      "Duplicated records in NON interviewed HH",
+      "Duplicated records in interviewed HH",
       "NON interviewed HH without duplicated records",
       "Interviewed HH without duplicated records",
-      "Duplicated HH / Reused HH IDs"
+      "Reused HH IDs",
+      "Reused HH IDs in interviewed HH"
     )
     colnames(duplicates_summary) = paste0("C", colnames(duplicates_summary))
     
