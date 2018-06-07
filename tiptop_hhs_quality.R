@@ -20,6 +20,7 @@ dataTimestamp = function(data_retrieval_mode, file_date = "", file_time = "") {
 # Read data from csv (downloaded from REDCap) or directly through the API
 readData = function(data_retrieval_mode, file_prefix = "", file_date = "", file_time = "",
                     api_url = "", api_token = "") {
+  #browser()
   if(data_retrieval_mode == "file") {
     hhs_data_file =paste0(file_prefix, "_DATA_", file_date, "_", gsub(":", "", file_time), ".csv")
     hhs_data = read.csv(hhs_data_file)
@@ -641,7 +642,7 @@ ANCIndicators = function(hhs_data, study_areas) {
     add_indent(c(3, 4, 5, 6, 7, 8, 9))
 }
 
-duplicatedRecords = function(hhs_data) {
+duplicatedRecords = function(hhs_data, study_areas_ids) {
   #id_columns = hhs_data[c("cluster_kenge", "cluster_bulungu", "household")]
   study_area_columns = paste0("cluster_", study_areas_ids)
   
@@ -672,8 +673,8 @@ duplicatedRecords = function(hhs_data) {
   return(duplicated_records_summary)
 }
 
-printDuplicatedRecords = function(hhs_data) {
-  duplicated_records_summary = duplicatedRecords(hhs_data)
+printDuplicatedRecords = function(hhs_data, study_areas_ids) {
+  duplicated_records_summary = duplicatedRecords(hhs_data, study_areas_ids)
   #browser()
   kable(duplicated_records_summary, "html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 

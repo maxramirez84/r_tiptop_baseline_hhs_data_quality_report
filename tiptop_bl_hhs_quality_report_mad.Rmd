@@ -199,7 +199,7 @@ duplicatedHouseholds(hhs_data)
 Records in which all variables are exactly the same. I.e. records sent more than once.
 
 ```{r duplicated_records, echo=FALSE}
-printDuplicatedRecords(hhs_data)
+printDuplicatedRecords(hhs_data, study_areas_ids)
 ```
 
 <p style="page-break-before: always">
