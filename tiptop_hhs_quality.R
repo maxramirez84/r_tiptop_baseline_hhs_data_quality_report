@@ -668,6 +668,12 @@ duplicatedRecords = function(hhs_data) {
   
   colnames(duplicated_records_summary) = c("District", "Cluster", "HH ID", "Latitude", "Longitude", 
                                            "Head Initials", "Consent", "Int. ID", "Int. Date")
+  
+  return(duplicated_records_summary)
+}
+
+printDuplicatedRecords = function(hhs_data) {
+  duplicated_records_summary = duplicatedRecords(hhs_data)
   #browser()
   kable(duplicated_records_summary, "html", escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
