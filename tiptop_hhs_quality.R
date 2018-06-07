@@ -654,8 +654,8 @@ duplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
   duplicated_records$cluster[!is.na(duplicated_records[study_area_columns[2]])] = 
     duplicated_records[!is.na(duplicated_records[study_area_columns[2]]), study_area_columns[2]]
   
-  columns = c("district", "cluster", "household", "latitude", "longitude", "hh_initials", "consent", 
-              "interviewer_id", "interview_date")
+  columns = c("record_id", "district", "cluster", "household", "latitude", "longitude", 
+              "hh_initials", "consent", "interviewer_id", "interview_date")
   duplicated_records_summary = duplicated_records[
     order(duplicated_records$district, duplicated_records$cluster, duplicated_records$household), 
     columns]
@@ -667,8 +667,9 @@ duplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
   duplicated_records_summary$district[duplicated_records_summary$district == 1] = study_areas[1]
   duplicated_records_summary$district[duplicated_records_summary$district == 2] = study_areas[2]
   
-  colnames(duplicated_records_summary) = c("District", "Cluster", "HH ID", "Latitude", "Longitude", 
-                                           "Head Initials", "Consent", "Int. ID", "Int. Date")
+  colnames(duplicated_records_summary) = c("ID", "District", "Cluster", "HH ID", "Latitude", 
+                                           "Longitude", "Head Initials", "Consent", "Int. ID", 
+                                           "Int. Date")
   
   return(duplicated_records_summary)
 }
@@ -676,7 +677,7 @@ duplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
 printDuplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
   duplicated_records_summary = duplicatedRecords(hhs_data, study_areas_ids, study_areas)
   #browser()
-  kable(duplicated_records_summary, "html", escape = F) %>%
+  kable(duplicated_records_summary, "html", row.names = F, escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
                   font_size = 12) %>%
     row_spec(0, bold = T, color = "white", background = "#494949") %>%
@@ -718,9 +719,9 @@ duplicatedHouseholds = function(hhs_data) {
   rerecorded_hh$cluster[!is.na(rerecorded_hh[study_area_columns[2]])] = 
     rerecorded_hh[!is.na(rerecorded_hh[study_area_columns[2]]), study_area_columns[2]]
   
-  columns = c("district", "cluster", "household", "latitude", "longitude", "hh_initials", "hh_sex", 
-              "hh_available", "consent", "end_last_pregnancy", "reported_age", "interviewer_id", 
-              "interview_date")
+  columns = c("record_id", "district", "cluster", "household", "latitude", "longitude", 
+              "hh_initials", "hh_sex", "hh_available", "consent", "end_last_pregnancy", 
+              "reported_age", "interviewer_id", "interview_date")
   rerecorded_hh_summary = rerecorded_hh[
     order(rerecorded_hh$district, rerecorded_hh$cluster, rerecorded_hh$household), 
     columns]
@@ -793,11 +794,11 @@ duplicatedHouseholds = function(hhs_data) {
   rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == F] = "F"
   rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == T] = "T"
   
-  colnames(rerecorded_hh_summary) = c("District", "C.", "HH ID", "Lat.", "Lng.", "H. Initials", 
-                                      "Sex", "Available", "Cons.", "End Preg.", "Age", "Int. ID", 
-                                      "Int. Date", "D.")
+  colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
+                                      "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
+                                      "Age", "Int. ID", "Int. Date", "D.")
   #browser()
-  kable(rerecorded_hh_summary, "html", escape = F) %>%
+  kable(rerecorded_hh_summary, "html", row.names = F, escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
                   font_size = 12) %>%
     row_spec(0, bold = T, color = "white", background = "#494949") %>%
