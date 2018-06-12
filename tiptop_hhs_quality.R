@@ -74,8 +74,9 @@ pivot <- function(indexes, index_column, value_column, df) {
 
 # Compute number of participants who consented the interview
 numberOfparticipantsWhoConsented = function(hhs_data) {
-  consented_area_1 = table(hhs_data$consent[hhs_data$district == 1])[2]
-  consented_area_2 = table(hhs_data$consent[hhs_data$district == 2])[2]
+  #browser()
+  consented_area_1 = table(hhs_data$consent[hhs_data$district == 1])['1']
+  consented_area_2 = table(hhs_data$consent[hhs_data$district == 2])['1']
   consented = c(
     if(is.na(consented_area_1)) 0 else consented_area_1,
     if(is.na(consented_area_2)) 0 else consented_area_2
@@ -297,6 +298,7 @@ visitedHouseholdsArea = function(hhs_data, household_to_be_visited_area_1,
 
 # Visited Households per Cluster in a concrete Area
 progressOfArea = function(hhs_data, study_area, interval, required_visits_mean) {
+  #browser()
   study_area_column = paste0("cluster_", study_areas_ids[study_area])
   
   visits_number = table(hhs_data[study_area_column])
@@ -328,6 +330,7 @@ progressOfArea = function(hhs_data, study_area, interval, required_visits_mean) 
 
 # Tables -------------------------------------------------------------------------------------------
 trialProfileOfArea = function(hhs_data, study_area) {
+  #browser()
   maximum_number_of_columns = 29
   font_size = 10
   study_area_column = paste0("cluster_", study_areas_ids[study_area])
@@ -367,6 +370,10 @@ trialProfileOfArea = function(hhs_data, study_area) {
     number_women_non_interviewed = table(hhs_data[hhs_data$consent == 0, study_area_column])
     
     eligible_women_selected = union(number_women_interviewed, number_women_non_interviewed)
+    if(ncol(eligible_women_selected) > 0)
+      eligible_women_selected_totals = eligible_women_selected[1,] + eligible_women_selected[2,]
+    else
+      eligible_women_selected_totals = number_women_interviewed # empty table
     
     number_women_denied_consent = table(hhs_data[hhs_data$why_not_consent == 0, study_area_column])
     number_women_absent = table(hhs_data[hhs_data$why_not_consent == 2, study_area_column])
@@ -378,6 +385,11 @@ trialProfileOfArea = function(hhs_data, study_area) {
     number_hh_head_refused = table(hhs_data[hhs_data$hh_acceptance == 0, study_area_column])
     
     hh_selected_not_interviewed = union(number_hh_empty, number_hh_head_refused)
+    if(ncol(hh_selected_not_interviewed) > 0)
+      hh_selected_not_interviewed_totals = 
+        hh_selected_not_interviewed[1,] + hh_selected_not_interviewed[2,]
+    else
+      hh_selected_not_interviewed_totals = number_hh_empty # emty table
     
     trial_profile = union(
       number_hh_selected_visited, 
@@ -385,14 +397,14 @@ trialProfileOfArea = function(hhs_data, study_area) {
       number_women_childbearing_age_list, 
       childbearing_age_women_profile[1,] - childbearing_age_women_profile[2,], 
       number_eligible_women_list,
-      eligible_women_selected[1,] + eligible_women_selected[2,],
+      eligible_women_selected_totals,
       number_women_interviewed,
       number_women_non_interviewed,
       number_women_denied_consent,
       number_women_absent,
       number_women_unabled,
       number_women_other_reason,
-      hh_selected_not_interviewed[1,] + hh_selected_not_interviewed[2,],
+      hh_selected_not_interviewed_totals,
       number_hh_empty,
       number_hh_head_not_found,
       number_hh_head_refused
@@ -839,15 +851,24 @@ duplicatesSummary = function(hhs_data, study_area) {
     
     non_interviewed = union(non_interviewed_visits_number_area, 
                             non_interviewed_duplicated_records_area)
+    if(ncol(non_interviewed) > 0)
+      non_interviewed_totals = non_interviewed[1,] - non_interviewed[2,]
+    else
+      non_interviewed_totals = non_interviewed_visits_number_area # empty table
+    
     interviewed = union(interviewed_number_area, interviewed_duplicated_records_area)
+    if(ncol(interviewed) > 0)
+      interviewed_totals = interviewed[1,] - interviewed[2,]
+    else
+      interviewed_totals = interviewed_number_area # empty table
      #browser()
     duplicates_summary = union(
       non_interviewed_visits_number_area,
       interviewed_number_area,
       non_interviewed_duplicated_records_area,
       interviewed_duplicated_records_area,
-      non_interviewed[1,] - non_interviewed[2,],
-      interviewed[1,] - interviewed[2,],
+      non_interviewed_totals,
+      interviewed_totals,
       rerecorded_hh_area,
       rerecorded_hh_interviewed_area
     )
@@ -865,7 +886,7 @@ duplicatesSummary = function(hhs_data, study_area) {
     
     duplicates_summary_reduced = duplicates_summary[, duplicates_summary[3,] != 0 | 
                                                       duplicates_summary[4,] != 0 | 
-                                                      duplicates_summary[7,] != 0]
+                                                      duplicates_summary[7,] != 0, drop = F]
     
     if(ncol(duplicates_summary_reduced) > maximum_number_of_columns) {
       number_of_columns = ncol(duplicates_summary_reduced)
