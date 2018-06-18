@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-TIPTOPHHSBaselineMad_DATA_*.csv
-TIPTOPHHSBaselineNig_DATA_*.csv
+TIPTOPHHS*.csv
 tiptop_bl_hhs_quality_report_*.html
 tokens.R
