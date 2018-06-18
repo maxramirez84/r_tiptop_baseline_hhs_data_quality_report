@@ -679,15 +679,14 @@ duplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
   duplicated_records_summary$district[duplicated_records_summary$district == 1] = study_areas[1]
   duplicated_records_summary$district[duplicated_records_summary$district == 2] = study_areas[2]
   
-  colnames(duplicated_records_summary) = c("ID", "District", "Cluster", "HH ID", "Latitude", 
-                                           "Longitude", "Head Initials", "Consent", "Int. ID", 
-                                           "Int. Date")
-  
   return(duplicated_records_summary)
 }
 
 printDuplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
   duplicated_records_summary = duplicatedRecords(hhs_data, study_areas_ids, study_areas)
+  colnames(duplicated_records_summary) = c("ID", "District", "Cluster", "HH ID", "Latitude", 
+                                           "Longitude", "Head Initials", "Consent", "Int. ID", 
+                                           "Int. Date")
   #browser()
   kable(duplicated_records_summary, "html", row.names = F, escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
@@ -806,15 +805,15 @@ duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
   rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == F] = "F"
   rerecorded_hh_summary$duplicated[rerecorded_hh_summary$duplicated == T] = "T"
   
-  colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
-                                      "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
-                                      "Age", "Int. ID", "Int. Date", "D.")
-  
   return(rerecorded_hh_summary)
 }
 
 printDuplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
   rerecorded_hh_summary = duplicatedHouseholds(hhs_data, study_areas_ids, study_areas)
+  colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
+                                      "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
+                                      "Age", "Int. ID", "Int. Date", "D.")
+  
   #browser()
   kable(rerecorded_hh_summary, "html", row.names = F, escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
