@@ -692,16 +692,22 @@ duplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
 }
 
 printDuplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
-  duplicated_records_summary = duplicatedRecords(hhs_data, study_areas_ids, study_areas)
-  colnames(duplicated_records_summary) = c("ID", "District", "Cluster", "HH ID", "Latitude", 
-                                           "Longitude", "Head Initials", "Consent", "Int. ID", 
-                                           "Int. Date")
   #browser()
-  kable(duplicated_records_summary, "html", row.names = F, escape = F) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
-                  font_size = 12) %>%
-    row_spec(0, bold = T, color = "white", background = "#494949") %>%
-    scroll_box(height = "250px")
+  duplicated_records_summary = duplicatedRecords(hhs_data, study_areas_ids, study_areas)
+  
+  if(nrow(duplicated_records_summary) > 0) {
+    colnames(duplicated_records_summary) = c("ID", "District", "Cluster", "HH ID", "Latitude", 
+                                             "Longitude", "Head Initials", "Consent", "Int. ID", 
+                                             "Int. Date")
+    
+    kable(duplicated_records_summary, "html", row.names = F, escape = F) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                    font_size = 12) %>%
+      row_spec(0, bold = T, color = "white", background = "#494949") %>%
+      scroll_box(height = "250px")
+  } else {
+    print("There are no duplicated records.")
+  }
 }
 
 duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
@@ -823,15 +829,21 @@ duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
 printDuplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
   #browser()
   rerecorded_hh_summary = duplicatedHouseholds(hhs_data, study_areas_ids, study_areas)
-  colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
-                                      "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
-                                      "Age", "Int. ID", "Int. Date", "D.")
   
-  kable(rerecorded_hh_summary, "html", row.names = F, escape = F) %>%
-    kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
-                  font_size = 12) %>%
-    row_spec(0, bold = T, color = "white", background = "#494949") %>%
-    scroll_box(height = "250px")
+  if(nrow(rerecorded_hh_summary) > 0) {
+    colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
+                                        "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
+                                        "Age", "Int. ID", "Int. Date", "D.")
+    
+    kable(rerecorded_hh_summary, "html", row.names = F, escape = F) %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                    font_size = 12) %>%
+      row_spec(0, bold = T, color = "white", background = "#494949") %>%
+      scroll_box(height = "250px")
+  } else {
+    print("There are no duplicated households.")
+  }
+  
 }
 
 duplicatesSummary = function(hhs_data, study_area) {
@@ -878,7 +890,7 @@ duplicatesSummary = function(hhs_data, study_area) {
       interviewed_totals = interviewed[1,] - interviewed[2,]
     else
       interviewed_totals = interviewed_number_area # empty table
-     #browser()
+    #browser()
     duplicates_summary = union(
       non_interviewed_visits_number_area,
       interviewed_number_area,
@@ -905,29 +917,33 @@ duplicatesSummary = function(hhs_data, study_area) {
                                                       duplicates_summary[4,] != 0 | 
                                                       duplicates_summary[7,] != 0, drop = F]
     
-    if(ncol(duplicates_summary_reduced) > maximum_number_of_columns) {
-      number_of_columns = ncol(duplicates_summary_reduced)
-      middle = as.integer(number_of_columns / 2)
-      
-      print(kable(duplicates_summary_reduced[,1:(middle + 2)], "html", escape = F) %>%
-        kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
-                      font_size = font_size) %>%
-        row_spec(0, bold = T, color = "white", background = "#494949") %>%
-        row_spec(c(2, 6), bold = T)
-      )
-      print(kable(duplicates_summary_reduced[,(middle + 3):number_of_columns], "html", escape = F) %>%
-              kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
-                            font_size = font_size) %>%
-              row_spec(0, bold = T, color = "white", background = "#494949") %>%
-              row_spec(c(2, 6), bold = T)
-      )
+    if(ncol(duplicates_summary_reduced) > 0) {
+      if(ncol(duplicates_summary_reduced) > maximum_number_of_columns) {
+        number_of_columns = ncol(duplicates_summary_reduced)
+        middle = as.integer(number_of_columns / 2)
+        
+        print(kable(duplicates_summary_reduced[,1:(middle + 2)], "html", escape = F) %>%
+                kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                              font_size = font_size) %>%
+                row_spec(0, bold = T, color = "white", background = "#494949") %>%
+                row_spec(c(2, 6), bold = T)
+        )
+        print(kable(duplicates_summary_reduced[,(middle + 3):number_of_columns], "html", escape = F) %>%
+                kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                              font_size = font_size) %>%
+                row_spec(0, bold = T, color = "white", background = "#494949") %>%
+                row_spec(c(2, 6), bold = T)
+        )
+      } else {
+        print(kable(duplicates_summary_reduced, "html", escape = F) %>%
+                kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
+                              font_size = font_size) %>%
+                row_spec(0, bold = T, color = "white", background = "#494949") %>%
+                row_spec(c(2, 6), bold = T)
+        )
+      }
     } else {
-      print(kable(duplicates_summary_reduced, "html", escape = F) %>%
-              kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
-                            font_size = font_size) %>%
-              row_spec(0, bold = T, color = "white", background = "#494949") %>%
-              row_spec(c(2, 6), bold = T)
-      )
+      print("There are no duplicates.") 
     }
   } else {
     print("There is no data.")
