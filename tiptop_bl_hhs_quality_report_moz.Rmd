@@ -196,7 +196,7 @@ Households recorded / interviewed more than once by the same or different field 
 household ID used more than once for different interviews.
 
 ```{r duplicated_households, echo=FALSE}
-duplicatedHouseholds(hhs_data)
+printDuplicatedHouseholds(hhs_data, study_areas_ids, study_areas)
 ```
 
 ### Duplicated Records

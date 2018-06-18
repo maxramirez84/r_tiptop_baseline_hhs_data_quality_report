@@ -696,7 +696,7 @@ printDuplicatedRecords = function(hhs_data, study_areas_ids, study_areas) {
     scroll_box(height = "250px")
 }
 
-duplicatedHouseholds = function(hhs_data) {
+duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
   #browser()
   study_area_columns = paste0("cluster_", study_areas_ids)
   
@@ -809,6 +809,12 @@ duplicatedHouseholds = function(hhs_data) {
   colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
                                       "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
                                       "Age", "Int. ID", "Int. Date", "D.")
+  
+  return(rerecorded_hh_summary)
+}
+
+printDuplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
+  rerecorded_hh_summary = duplicatedHouseholds(hhs_data, study_areas_ids, study_areas)
   #browser()
   kable(rerecorded_hh_summary, "html", row.names = F, escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
