@@ -748,52 +748,55 @@ duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
   
   #browser()
   # Disambiguate records
-  rerecorded_hh_summary$duplicated = NA
-  current_district = rerecorded_hh_summary$district[1]
-  current_cluster = rerecorded_hh_summary$cluster[1]
-  current_household = rerecorded_hh_summary$household[1]
-  records_in_conflict = c(1)
-  for(i in 2:nrow(rerecorded_hh_summary)) {
-    if(rerecorded_hh_summary$district[i] == current_district & 
-       rerecorded_hh_summary$cluster[i] == current_cluster &
-       ((is.na(rerecorded_hh_summary$household[i]) & is.na(current_household)) | 
-        (!is.na(rerecorded_hh_summary$household[i]) & 
-         rerecorded_hh_summary$household[i] == current_household))) {
-      records_in_conflict = c(records_in_conflict, i)
-    } else {
-      for(j in 1:(length(records_in_conflict) - 1)) {
-        for(k in (j+1):length(records_in_conflict)) {
-          #browser()
-          result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
-                                 rerecorded_hh_summary[records_in_conflict[k], ])
-          
-          if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[j]]) | 
-             rerecorded_hh_summary$duplicated[records_in_conflict[j]] != T)
-            rerecorded_hh_summary$duplicated[records_in_conflict[j]] = result
-          if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[k]]) | 
-             rerecorded_hh_summary$duplicated[records_in_conflict[k]] != T)
-            rerecorded_hh_summary$duplicated[records_in_conflict[k]] = result
+  if(nrow(rerecorded_hh_summary) > 0) {
+    rerecorded_hh_summary$duplicated = NA
+    current_district = rerecorded_hh_summary$district[1]
+    current_cluster = rerecorded_hh_summary$cluster[1]
+    current_household = rerecorded_hh_summary$household[1]
+    records_in_conflict = c(1)
+    for(i in 2:nrow(rerecorded_hh_summary)) {
+      if(rerecorded_hh_summary$district[i] == current_district & 
+         rerecorded_hh_summary$cluster[i] == current_cluster &
+         ((is.na(rerecorded_hh_summary$household[i]) & is.na(current_household)) | 
+          (!is.na(rerecorded_hh_summary$household[i]) & 
+           rerecorded_hh_summary$household[i] == current_household))) {
+        records_in_conflict = c(records_in_conflict, i)
+      } else {
+        for(j in 1:(length(records_in_conflict) - 1)) {
+          for(k in (j+1):length(records_in_conflict)) {
+            #browser()
+            result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
+                                   rerecorded_hh_summary[records_in_conflict[k], ])
+            
+            if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[j]]) | 
+               rerecorded_hh_summary$duplicated[records_in_conflict[j]] != T)
+              rerecorded_hh_summary$duplicated[records_in_conflict[j]] = result
+            if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[k]]) | 
+               rerecorded_hh_summary$duplicated[records_in_conflict[k]] != T)
+              rerecorded_hh_summary$duplicated[records_in_conflict[k]] = result
+          }
         }
+        
+        current_district = rerecorded_hh_summary$district[i]
+        current_cluster = rerecorded_hh_summary$cluster[i]
+        current_household = rerecorded_hh_summary$household[i]
+        records_in_conflict = c(i)
       }
-      
-      current_district = rerecorded_hh_summary$district[i]
-      current_cluster = rerecorded_hh_summary$cluster[i]
-      current_household = rerecorded_hh_summary$household[i]
-      records_in_conflict = c(i)
     }
-  }
-  #browser()
-  for(j in 1:(length(records_in_conflict) - 1)) {
-    for(k in (j+1):length(records_in_conflict)) {
-      result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
-                             rerecorded_hh_summary[records_in_conflict[k], ])
-      
-      if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[j]]) | 
-         rerecorded_hh_summary$duplicated[records_in_conflict[j]] != T)
-        rerecorded_hh_summary$duplicated[records_in_conflict[j]] = result
-      if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[k]]) | 
-         rerecorded_hh_summary$duplicated[records_in_conflict[k]] != T)
-        rerecorded_hh_summary$duplicated[records_in_conflict[k]] = result
+    
+    #browser()
+    for(j in 1:(length(records_in_conflict) - 1)) {
+      for(k in (j+1):length(records_in_conflict)) {
+        result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
+                               rerecorded_hh_summary[records_in_conflict[k], ])
+        
+        if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[j]]) | 
+           rerecorded_hh_summary$duplicated[records_in_conflict[j]] != T)
+          rerecorded_hh_summary$duplicated[records_in_conflict[j]] = result
+        if(is.na(rerecorded_hh_summary$duplicated[records_in_conflict[k]]) | 
+           rerecorded_hh_summary$duplicated[records_in_conflict[k]] != T)
+          rerecorded_hh_summary$duplicated[records_in_conflict[k]] = result
+      }
     }
   }
   
@@ -818,12 +821,12 @@ duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
 }
 
 printDuplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
+  #browser()
   rerecorded_hh_summary = duplicatedHouseholds(hhs_data, study_areas_ids, study_areas)
   colnames(rerecorded_hh_summary) = c("ID", "District", "C.", "HH ID", "Lat.", "Lng.", 
                                       "H. Initials", "Sex", "Available", "Cons.", "End Preg.", 
                                       "Age", "Int. ID", "Int. Date", "D.")
   
-  #browser()
   kable(rerecorded_hh_summary, "html", row.names = F, escape = F) %>%
     kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
                   font_size = 12) %>%
