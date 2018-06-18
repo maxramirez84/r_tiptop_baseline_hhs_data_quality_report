@@ -734,8 +734,8 @@ duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
               "hh_initials", "hh_sex", "hh_available", "consent", "end_last_pregnancy", 
               "reported_age", "interviewer_id", "interview_date")
   rerecorded_hh_summary = rerecorded_hh[
-    order(rerecorded_hh$district, rerecorded_hh$cluster, rerecorded_hh$household), 
-    columns]
+    order(rerecorded_hh$district, rerecorded_hh$cluster, rerecorded_hh$household, 
+          rerecorded_hh$interview_date), columns]
   
   #browser()
   # Disambiguate records
