@@ -18,11 +18,11 @@ dataTimestamp = function(data_retrieval_mode, file_date = "", file_time = "") {
 }
 
 # Read data from csv (downloaded from REDCap) or directly through the API
-readData = function(data_retrieval_mode, file_prefix = "", file_date = "", file_time = "",
-                    api_url = "", api_token = "") {
+readData = function(data_retrieval_mode, file_prefix = "", file_content = "_DATA_", file_date = "", 
+                    file_time = "", api_url = "", api_token = "") {
   #browser()
   if(data_retrieval_mode == "file") {
-    hhs_data_file =paste0(file_prefix, "_DATA_", file_date, "_", gsub(":", "", file_time), ".csv")
+    hhs_data_file =paste0(file_prefix, file_content, file_date, "_", gsub(":", "", file_time), ".csv")
     hhs_data = read.csv(hhs_data_file)
   } else if(data_retrieval_mode == "api") {
     rcon = redcapConnection(api_url, api_token)
@@ -30,6 +30,15 @@ readData = function(data_retrieval_mode, file_prefix = "", file_date = "", file_
   }
   
   return(hhs_data)
+}
+
+# Get REDCap project information
+getProjectInfo = function(api_url, api_token) {
+  #browser()
+  rcon = redcapConnection(api_url, api_token)
+  project_info = exportProjectInformation(rcon)
+  
+  return(project_info)
 }
 
 # Get the timestamp of the last collected record
