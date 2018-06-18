@@ -91,7 +91,8 @@ output:
 library(knitr)
 knitr::opts_chunk$set(echo = TRUE, fig.width = 18, fig.height = 7.5)
 
-hhs_data = readData(data_retrieval_mode, file_prefix, file_date, file_time, api_url, api_token)
+hhs_data = readData(data_retrieval_mode, file_prefix, file_content, file_date, file_time, api_url, 
+                    api_token)
 
 # TEMP: Cluster are still not defined so there's no variable cluster_nhamatanda and cluster_meconta
 hhs_data$cluster_nhamatanda[hhs_data$district == 1] <- hhs_data$cluster[hhs_data$district == 1]

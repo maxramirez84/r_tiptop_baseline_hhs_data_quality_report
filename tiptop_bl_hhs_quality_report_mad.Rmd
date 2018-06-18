@@ -3,14 +3,19 @@ source("tiptop_hhs_quality.R")
 source("tokens.R")
 
 # Data retrieval: {api, file}
-data_retrieval_mode = "api"
+data_retrieval_mode = "file"
 # API
 api_url   = redcap_api_url
 api_token = api_token_mad # TIPTOP HHS Baseline Madagascar (MALGACHE)
 # File
-file_prefix = "TIPTOPHHSBaselineMad"
-file_date   ="2018-03-23"
-file_time   ="08:30"
+# file_prefix = "TIPTOPHHSBaselineMad"
+# file_content = "_DATA_"
+# file_date   ="2018-03-23"
+# file_time   ="08:30"
+file_prefix = "TIPTOPHHSBaselineMadagascarMALGACHE"
+file_content = "_DATA_WITH_NO_DUPS_"
+file_date   ="2018-06-18"
+file_time   ="13:05"
 
 # Study area description
 study_areas                    = c("Mananjary", "Toliary 2")
@@ -91,7 +96,8 @@ output:
 library(knitr)
 knitr::opts_chunk$set(echo = TRUE, fig.width = 18, fig.height = 7.5)
 
-hhs_data = readData(data_retrieval_mode, file_prefix, file_date, file_time, api_url, api_token)
+hhs_data = readData(data_retrieval_mode, file_prefix, file_content, file_date, file_time, api_url, 
+                    api_token)
 
 # Global variables
 last_record_date = lastRecordDate(hhs_data)
