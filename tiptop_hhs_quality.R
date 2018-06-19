@@ -32,6 +32,53 @@ readData = function(data_retrieval_mode, file_prefix = "", file_content = "_DATA
   return(hhs_data)
 }
 
+# Remove special characters from free text variables
+removeSpecialCharacters = function(hhs_data, study_areas_ids) {
+  browser()
+  special_characters = c('\n')
+  replacement_character = ' '
+  
+  for(i in 1:length(special_characters)) {
+    c = special_characters[i]
+    r = replacement_character
+    other_facility = paste0("other_facility_", study_areas_ids)
+    
+    hhs_data$other_why_not_consent = gsub(c, r, hhs_data$other_why_not_consent)       # HQ11.1.1
+    hhs_data$hh_other_main_occupation = gsub(c, r, hhs_data$hh_other_main_occupation) # HQ13.1
+    hhs_data$household_other_roof = gsub(c, r, hhs_data$household_other_roof)         # HQ15.1
+    hhs_data$household_other_walls = gsub(c, r, hhs_data$household_other_walls)       # HQ16.1
+    hhs_data$household_other_water = gsub(c, r, hhs_data$household_other_water)       # HQ17.1
+    hhs_data$household_other_toilet = gsub(c, r, hhs_data$household_other_toilet)     # HQ18.1
+    
+    hhs_data$other_why_not_attend_anc = gsub(c, r, hhs_data$other_why_not_attend_anc) # WQ5.1.1
+    hhs_data$anc_card_keeper = gsub(c, r, hhs_data$anc_card_keeper)                   # WQ5.1.1.1a
+    hhs_data$other_why_not_anc_card = gsub(c, r, hhs_data$other_why_not_anc_card)     # WQ5.1.1.1b
+    hhs_data$other_sp_source = gsub(c, r, hhs_data$other_sp_source)                   # WQ8.1.4.1
+    hhs_data$other_antimalarial = gsub(c, r, hhs_data$other_antimalarial)             # WQ9.2.1.1
+    hhs_data$other_non_antimalarial = gsub(c, r, hhs_data$other_non_antimalarial)     # WQ9.2.1.2
+    hhs_data$other_birth_place = gsub(c, r, hhs_data$other_birth_place)               # WQ15.4.1
+    
+    hhs_data$other_main_occupation = gsub(c, r, hhs_data$other_main_occupation)       # WQ19.2.1
+    hhs_data[other_facility[1]] = gsub(c, r, hhs_data$other_facility_mananjary)       # WQ22.1a
+    hhs_data[other_facility[2]] = gsub(c, r, hhs_data$other_facility_toliary_2)       # WQ22.1b
+    if("other_facility" %in% colnames(hhs_data))
+      hhs_data$other_facility = gsub(c, r, hhs_data$other_facility)                   # WQ22.1c
+    hhs_data$other_facility_transport = gsub(c, r, hhs_data$other_facility_transport) # WQ23.1
+    hhs_data$partner_other_occupation = gsub(c, r, hhs_data$partner_other_occupation) # WQ28.1
+    
+    hhs_data$why_warnings = gsub(c, r, hhs_data$why_warnings)
+  }
+  
+  return(hhs_data)
+}
+
+# Remove those records which are empty
+removeEmptyRecords = function(hhs_data) {
+  hhs_data = hhs_data[!is.na(hhs_data$district), ]
+  
+  return(hhs_data)
+}
+
 # Get REDCap project information
 getProjectInfo = function(api_url, api_token) {
   #browser()
