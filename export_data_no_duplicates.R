@@ -39,6 +39,8 @@ study_areas     = c(study_area_1, study_area_2)
 # Read data set from REDCap by using the provided token
 redcap_api_url = "https://tiptop.isglobal.org/redcap/api/"
 hhs_data = readData("api", api_url = redcap_api_url, api_token = api_token)
+hhs_data = removeSpecialCharacters(hhs_data, study_areas_ids)
+hhs_data = removeEmptyRecords(hhs_data)
 
 # Remove duplicated records (where all variables contain exactly the same values except record_id)
 duplicated_records = duplicatedRecords(hhs_data, study_areas_ids, study_areas)
@@ -80,4 +82,4 @@ filename = paste0(filename, "_DATA_WITH_NO_DUPS_")
 filename = paste0(filename, Sys.Date())
 filename = paste0(filename, "_", format(Sys.time(), "%H%M"))
 filename = paste0(filename, ".csv")
-write.csv(hhs_data_with_no_dups, file = filename, row.names = F)
+write.csv(hhs_data_with_no_dups, file = filename, row.names = F, na = "")
