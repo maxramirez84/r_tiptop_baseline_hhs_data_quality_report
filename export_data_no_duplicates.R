@@ -7,18 +7,20 @@ source("tiptop_hhs_quality.R")
 
 # Auxiliar functions
 renameRecords = function (data, record_ids_to_rename) {
-  previous_household_id = -1
-  for(i in 1:length(record_ids_to_rename)) {
-    new_household_id = paste0(
-      data$household[data$record_id == record_ids_to_rename[i]], '_01')
-    
-    if(new_household_id == previous_household_id)
+  if(length(record_ids_to_rename) > 0) {
+    previous_household_id = -1
+    for(i in 1:length(record_ids_to_rename)) {
       new_household_id = paste0(
-        data$household[data$record_id == record_ids_to_rename[i]], '_02')
-    
-    data$household[data$record_id == record_ids_to_rename[i]] = new_household_id
-    
-    previous_household_id = new_household_id
+        data$household[data$record_id == record_ids_to_rename[i]], '_01')
+      
+      if(new_household_id == previous_household_id)
+        new_household_id = paste0(
+          data$household[data$record_id == record_ids_to_rename[i]], '_02')
+      
+      data$household[data$record_id == record_ids_to_rename[i]] = new_household_id
+      
+      previous_household_id = new_household_id
+    }
   }
   
   return(data)
@@ -26,16 +28,13 @@ renameRecords = function (data, record_ids_to_rename) {
 
 # Read arguments
 args = commandArgs(T)
-#api_token = args[1]
-api_token = "XXXXXX" # TIPTOP HHS Baseline DRC TEMP
-#study_area_1_id = args[2]
-#study_area_1    = args[3]
-#study_area_2_id = args[4]
-#study_area_2    = args[5]
-#study_areas_ids = c(study_area_1_id, study_area_2_id)
-#study_areas     = c(study_area_1, study_area_2) 
-study_areas_ids = c("kenge", "bulungu") # TEMP
-study_areas = c("Kenge", "Bulungu") # TEMP
+api_token = args[1]
+study_area_1_id = args[2]
+study_area_1    = args[3]
+study_area_2_id = args[4]
+study_area_2    = args[5]
+study_areas_ids = c(study_area_1_id, study_area_2_id)
+study_areas     = c(study_area_1, study_area_2)
 
 # Read data set from REDCap by using the provided token
 redcap_api_url = "https://tiptop.isglobal.org/redcap/api/"
@@ -56,10 +55,10 @@ record_ids_to_rename = non_duplicated_households$record_id[
   duplicated(non_duplicated_households[2:4])]
 hhs_data_with_no_dups = renameRecords(hhs_data_with_no_dups, record_ids_to_rename)
 
-# When they are duplicates, remove them
+# When they are duplicates, remove the OLDEST RECORDS and keep the LAST ONE
 in_fact_duplicated_households = duplicated_households[duplicated_households$duplicated == 'T', ]
 record_ids_to_drop = in_fact_duplicated_households$record_id[
-  duplicated(in_fact_duplicated_households[2:4])]
+  duplicated(in_fact_duplicated_households[2:4], fromLast = T)]
 hhs_data_with_no_dups = hhs_data_with_no_dups[!(hhs_data_with_no_dups$record_id %in% 
                                                   record_ids_to_drop), ]
 
