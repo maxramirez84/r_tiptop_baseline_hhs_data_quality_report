@@ -3,14 +3,15 @@ source("tiptop_hhs_quality.R")
 source("tokens.R")
 
 # Data retrieval: {api, file}
-data_retrieval_mode = "api"
+data_retrieval_mode = "file"
 # API
 api_url   = redcap_api_url
 api_token = api_token_moz # TIPTOP HHS Baseline Mozambique
 # File
 file_prefix = "TIPTOPHHSBaselineMoz"
-file_date   ="2018-03-27"
-file_time   ="13:33"
+file_content = "_DATA_"
+file_date   ="2018-07-19"
+file_time   ="06:34"
 
 # Study area description
 study_areas                    = c("Nhamatanda", "Meconta")
@@ -94,9 +95,11 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 18, fig.height = 7.5)
 hhs_data = readData(data_retrieval_mode, file_prefix, file_content, file_date, file_time, api_url, 
                     api_token)
 
-# TEMP: Cluster are still not defined so there's no variable cluster_nhamatanda and cluster_meconta
-hhs_data$cluster_nhamatanda[hhs_data$district == 1] <- hhs_data$cluster[hhs_data$district == 1]
-hhs_data$cluster_meconta[hhs_data$district == 2] <- hhs_data$cluster[hhs_data$district == 2]
+# In this case, cluster values are scattered in multiple variables. So we need to collapse them
+hhs_data$cluster_nhamatanda[hhs_data$district == 1] = 
+  rowSums(hhs_data[hhs_data$district == 1, grepl("cluster_", names(hhs_data))], na.rm = T)
+hhs_data$cluster_meconta[hhs_data$district == 2] = 
+  rowSums(hhs_data[hhs_data$district == 2, grepl("cluster_", names(hhs_data))], na.rm = T)
 ###
 
 # Global variables
