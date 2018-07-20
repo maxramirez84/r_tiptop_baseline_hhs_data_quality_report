@@ -34,7 +34,7 @@ readData = function(data_retrieval_mode, file_prefix = "", file_content = "_DATA
 
 # Remove special characters from free text variables
 removeSpecialCharacters = function(hhs_data, study_areas_ids) {
-  browser()
+  #browser()
   special_characters = c('\n')
   replacement_character = ' '
   
