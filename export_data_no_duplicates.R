@@ -7,13 +7,14 @@ source("tiptop_hhs_quality.R")
 
 # Auxiliar functions
 renameRecords = function (data, record_ids_to_rename) {
+  #browser()
   if(length(record_ids_to_rename) > 0) {
     previous_household_id = -1
     for(i in 1:length(record_ids_to_rename)) {
       new_household_id = paste0(
         data$household[data$record_id == record_ids_to_rename[i]], '_01')
       
-      if(new_household_id == previous_household_id)
+      if(new_household_id == previous_household_id | new_household_id %in% data$household)
         new_household_id = paste0(
           data$household[data$record_id == record_ids_to_rename[i]], '_02')
       
