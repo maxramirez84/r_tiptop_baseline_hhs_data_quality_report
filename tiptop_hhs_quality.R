@@ -20,10 +20,9 @@ dataTimestamp = function(data_retrieval_mode, file_date = "", file_time = "") {
 # Read data from csv (downloaded from REDCap) or directly through the API
 readData = function(data_retrieval_mode, file_prefix = "", file_content = "_DATA_", file_date = "", 
                     file_time = "", api_url = "", api_token = "") {
-  #browser()
   if(data_retrieval_mode == "file") {
     hhs_data_file =paste0(file_prefix, file_content, file_date, "_", gsub(":", "", file_time), ".csv")
-    hhs_data = read.csv(hhs_data_file)
+    hhs_data = read.csv(hhs_data_file, stringsAsFactors = FALSE)
   } else if(data_retrieval_mode == "api") {
     rcon = redcapConnection(api_url, api_token)
     hhs_data = exportRecords(rcon, factors = F)
@@ -195,8 +194,8 @@ cIPTpAdministrationRate = function(hhs_data) {
 stringdistByToken =  function(a, b, method) {
   #browser()
   split = " "
-  a_tokens = strsplit(a, split = split)[[1]]
-  b_tokens = strsplit(b, split = split)[[1]]
+  a_tokens = strsplit(as.character(a), split = split)[[1]]
+  b_tokens = strsplit(as.character(b), split = split)[[1]]
   
   small_string = a_tokens
   big_string = b_tokens
@@ -207,24 +206,27 @@ stringdistByToken =  function(a, b, method) {
     
   
   str_dist = 0
-  for(i in 1:length(small_string)) {
-    min_dist = Inf
-    
-    for(j in 1:length(big_string)) {
-      token_dist = stringdist(small_string[i], big_string[j], method = method)
-      if(token_dist < min_dist)
-        min_dist = token_dist
+  if(length(small_string) > 0) {
+    for(i in 1:length(small_string)) {
+      min_dist = Inf
+      
+      for(j in 1:length(big_string)) {
+        token_dist = stringdist(small_string[i], big_string[j], method = method)
+        if(token_dist < min_dist)
+          min_dist = token_dist
+      }
+      
+      str_dist = str_dist + min_dist
     }
-    
-    str_dist = str_dist + min_dist
   }
   
   # Penalty
   words_diff = abs(length(small_string) - length(big_string))
   order_diff = 0
-  for(i in 1:length(small_string))
-    if(small_string[i] != big_string[i])
-      order_diff = order_diff + 1
+  if(length(small_string) > 0)
+    for(i in 1:length(small_string))
+      if(small_string[i] != big_string[i])
+        order_diff = order_diff + 1
   
   dist_by_token = str_dist + words_diff + order_diff
   dist = stringdist(a, b, method = method)
@@ -840,6 +842,7 @@ duplicatedHouseholds = function(hhs_data, study_areas_ids, study_areas) {
     #browser()
     for(j in 1:(length(records_in_conflict) - 1)) {
       for(k in (j+1):length(records_in_conflict)) {
+        browser()
         result = sameInterview(rerecorded_hh_summary[records_in_conflict[j], ], 
                                rerecorded_hh_summary[records_in_conflict[k], ])
         
