@@ -1,5 +1,9 @@
 
-# INPUTS: API TOKEN, STUDY_AREA_1_ID, STUDY_AREA_1_NAME, STUDY_AREA_2_ID, STUDY_AREA_2_NAME
+# INPUTS: API, <API TOKEN>, <STUDY_AREA_1_ID>, <STUDY_AREA_1_NAME>, <STUDY_AREA_2_ID>, 
+#         <STUDY_AREA_2_NAME>
+# INPUTS: FILE, <API TOKEN>, <STUDY_AREA_1_ID>, <STUDY_AREA_1_NAME>, <STUDY_AREA_2_ID>, 
+#         <STUDY_AREA_2_NAME>, <FILE_PREFIX>, <FILE_CONTENT>, <FILE_DATE>, <FILE_TIME>
+#
 # OUTPUT: CSV FILE WITH DATA SET WITHOUT DUPLICATES
 
 library(stringr)
@@ -29,17 +33,38 @@ renameRecords = function (data, record_ids_to_rename) {
 
 # Read arguments
 args = commandArgs(T)
-api_token = args[1]
-study_area_1_id = args[2]
-study_area_1    = args[3]
-study_area_2_id = args[4]
-study_area_2    = args[5]
+source          = args[1]  #= "FILE"
+api_token       = args[2]  #= "XXXXXX"
+study_area_1_id = args[3]  #= "nhamatanda"
+study_area_1    = args[4]  #= "Nhamatanda"
+study_area_2_id = args[5]  #= "meconta"
+study_area_2    = args[6]  #= "Meconta"
+if(source == "FILE") {
+  file_prefix   = args[7]  #= "DATA/DATA/TIPTOPHHSBaselineMoz"
+  file_content  = args[8]  #= "_DATA_"
+  file_date     = args[9]  #= "2018-09-05"
+  file_time     = args[10] #= "08:35"
+}
+  
 study_areas_ids = c(study_area_1_id, study_area_2_id)
 study_areas     = c(study_area_1, study_area_2)
 
 # Read data set from REDCap by using the provided token
 redcap_api_url = "https://tiptop.isglobal.org/redcap/api/"
-hhs_data = readData("api", api_url = redcap_api_url, api_token = api_token)
+
+if(source == "API") {
+  hhs_data = readData("api", api_url = redcap_api_url, api_token = api_token)
+} else {
+  hhs_data = readData("file", file_prefix = file_prefix, file_content = file_content, 
+                      file_date = file_date, file_time = file_time)
+}
+# In the Mozambique case, cluster values are scattered in multiple variables. So we need to collapse them
+hhs_data$cluster_nhamatanda[!is.na(hhs_data$district) & hhs_data$district == 1] = 
+  rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 1, grepl("cluster_", names(hhs_data))], na.rm = T)
+hhs_data$cluster_meconta[!is.na(hhs_data$district) & hhs_data$district == 2] = 
+  rowSums(hhs_data[!is.na(hhs_data$district) & hhs_data$district == 2, grepl("cluster_", names(hhs_data))], na.rm = T)
+###
+
 hhs_data = removeSpecialCharacters(hhs_data, study_areas_ids)
 hhs_data = removeEmptyRecords(hhs_data)
 
@@ -75,6 +100,12 @@ hhs_data_with_no_dups = renameRecords(hhs_data_with_no_dups, record_ids_to_renam
 
 # Report what have been done
 # Pending...
+
+# In the Mozambique case, cluster values are scattered in multiple variables. So they werecollapsed 
+# before. Now removed to avoid confusion a keep the data set as it was originally
+hhs_data_with_no_dups$cluster_nhamatanda = NULL
+hhs_data_with_no_dups$cluster_meconta = NULL
+###
 
 # Write file
 redcap_project_info = getProjectInfo(redcap_api_url, api_token)
