@@ -130,8 +130,10 @@ pivot <- function(indexes, index_column, value_column, df) {
 # Compute number of participants who consented the interview
 numberOfparticipantsWhoConsented = function(hhs_data) {
   #browser()
-  consented_area_1 = table(hhs_data$consent[hhs_data$district == 1])['1']
-  consented_area_2 = table(hhs_data$consent[hhs_data$district == 2])['1']
+  consented_area_1 = table(hhs_data$ended_pregnancy[hhs_data$district == 1], 
+                           hhs_data$resident_during_pregnancy[hhs_data$district == 1])
+  consented_area_2 = table(hhs_data$ended_pregnancy[hhs_data$district == 2], 
+                           hhs_data$resident_during_pregnancy[hhs_data$district == 2])
   consented = c(
     if(is.na(consented_area_1)) 0 else consented_area_1,
     if(is.na(consented_area_2)) 0 else consented_area_2
@@ -362,7 +364,8 @@ progressOfArea = function(hhs_data, study_area, interval, required_visits_mean) 
   visits_number = table(hhs_data[study_area_column])
   if(length(visits_number) > 0) {
     max_y_axis = max(visits_number) + interval
-    consented_number = table(hhs_data[hhs_data$consent == 1, study_area_column])
+    consented_number = table(hhs_data[
+      hhs_data$ended_pregnancy == 1 & hhs_data$resident_during_pregnancy == 1, study_area_column])
     
     dat = union(visits_number, consented_number)
     par(cex.lab = 1.5, cex.main = 2, cex.axis = 1.05, mar = c(8, 8, 4, 0))
@@ -424,14 +427,21 @@ trialProfileOfArea = function(hhs_data, study_area) {
       number_eligible_women_list
     )
     
-    number_women_interviewed = table(hhs_data[hhs_data$consent == 1, study_area_column])
-    number_women_non_interviewed = table(hhs_data[hhs_data$consent == 0, study_area_column])
+    number_women_interviewed = table(
+      subset(hhs_data, ended_pregnancy == 1 & resident_during_pregnancy == 1)[study_area_column])
+    number_women_interrupt_interview = table(
+      subset(hhs_data, consent == 1 & 
+               (is.na(ended_pregnancy) | ended_pregnancy == 0 | 
+                  is.na(resident_during_pregnancy) | resident_during_pregnancy == 0))[study_area_column])
+    number_women_non_interviewed = table(subset(hhs_data, consent ==0)[study_area_column])
     
-    eligible_women_selected = union(number_women_interviewed, number_women_non_interviewed)
-    if(ncol(eligible_women_selected) > 0)
-      eligible_women_selected_totals = eligible_women_selected[1,] + eligible_women_selected[2,]
-    else
-      eligible_women_selected_totals = number_women_interviewed # empty table
+    eligible_women_selected = union(number_women_interviewed, number_women_interrupt_interview, 
+                                    number_women_non_interviewed)
+    if(ncol(eligible_women_selected) > 0) {
+      eligible_women_selected_totals = eligible_women_selected[1,] + eligible_women_selected[2,] + eligible_women_selected[3,]
+    } else {
+      eligible_women_selected_totals = number_women_interviewed # empty table 
+    }
     
     number_women_denied_consent = table(hhs_data[hhs_data$why_not_consent == 0, study_area_column])
     number_women_absent = table(hhs_data[hhs_data$why_not_consent == 2, study_area_column])
@@ -457,6 +467,7 @@ trialProfileOfArea = function(hhs_data, study_area) {
       number_eligible_women_list,
       eligible_women_selected_totals,
       number_women_interviewed,
+      number_women_interrupt_interview,
       number_women_non_interviewed,
       number_women_denied_consent,
       number_women_absent,
@@ -475,6 +486,7 @@ trialProfileOfArea = function(hhs_data, study_area) {
       "Eligible women",
       "Eligible women selected",
       "Women interviewed",
+      "Women that interrupted interview",
       "Women NON interviewed",
       "Denied signed consent/assent",
       "Absent",
@@ -491,13 +503,13 @@ trialProfileOfArea = function(hhs_data, study_area) {
     trial_profile_checked = trial_profile
     for(i in colnames(trial_profile)) {
       # non_interviewed HH = empty + refused
-      trial_profile_checked[c(13, 14, 16), i] = cell_spec(
-        x        = trial_profile[c(13, 14, 16),i],
+      trial_profile_checked[c(14, 15, 17), i] = cell_spec(
+        x        = trial_profile[c(14, 15, 17),i],
         format   ="html",
         color    = 
-          ifelse(trial_profile[14, i] + trial_profile[16, i] != trial_profile[13, i], "red", ""),
+          ifelse(trial_profile[15, i] + trial_profile[17, i] != trial_profile[14, i], "red", ""),
         tooltip  = 
-          ifelse(trial_profile[14, i] + trial_profile[16, i] != trial_profile[13, i], 
+          ifelse(trial_profile[15, i] + trial_profile[17, i] != trial_profile[14, i], 
                  "NOT interviewed HH must be equal to the sum of empty/destroyed + refused", "")
       )
       
@@ -513,37 +525,39 @@ trialProfileOfArea = function(hhs_data, study_area) {
       )
       
       # non_interviwed women = denied + absent + unabled + other
-      trial_profile_checked[c(8, 9, 10, 11, 12), i] = cell_spec(
-        x        = trial_profile[c(8, 9, 10, 11, 12),i],
+      trial_profile_checked[c(9, 10, 11, 12, 13), i] = cell_spec(
+        x        = trial_profile[c(9, 10, 11, 12, 13),i],
         format   ="html",
         color    = 
-          ifelse(trial_profile[9, i] + trial_profile[10, i] + trial_profile[11, i] + 
-                   trial_profile[12, i] != trial_profile[8, i], "red", ""),
+          ifelse(trial_profile[10, i] + trial_profile[11, i] + trial_profile[12, i] + 
+                   trial_profile[13, i] != trial_profile[9, i], "red", ""),
         tooltip  = 
-          ifelse(trial_profile[9, i] + trial_profile[10, i] + trial_profile[11, i] + 
-                   trial_profile[12, i]  != trial_profile[8, i], 
+          ifelse(trial_profile[10, i] + trial_profile[11, i] + trial_profile[12, i] + 
+                   trial_profile[13, i]  != trial_profile[9, i], 
                  "NON interviewed women must be equal to the sum of denied + absent + unabled", "")
       )
       
-      # women selected = interviewed + non_interviewed
-      trial_profile_checked[c(6, 7, 8), i] = cell_spec(
-        x        = trial_profile[c(6, 7, 8),i],
+      # women selected = interviewed + interrupted + non_interviewed
+      trial_profile_checked[c(6, 7, 8, 9), i] = cell_spec(
+        x        = trial_profile[c(6, 7, 8, 9),i],
         format   ="html",
         color    = 
-          ifelse(trial_profile[7, i] + trial_profile[8, i] != trial_profile[6, i], "red", ""),
+          ifelse(trial_profile[7, i] + trial_profile[8, i] + trial_profile[9, i] 
+                 != trial_profile[6, i], "red", ""),
         tooltip  = 
-          ifelse(trial_profile[7, i] + trial_profile[8, i] != trial_profile[6, i], 
-                 "Women selected must be equal to the sum of interviewed + NON interviewed", "")
+          ifelse(trial_profile[7, i] + trial_profile[8, i] + trial_profile[9, i] 
+                 != trial_profile[6, i], 
+                 "Women selected must be equal to the sum of interviewed + interrupted + NON interviewed", "")
       )
       
       # visited HH = interviewed + non_interviewed
-      trial_profile_checked[c(1, 2, 13), i] = cell_spec(
-        x        = trial_profile[c(1, 2, 13),i],
+      trial_profile_checked[c(1, 2, 14), i] = cell_spec(
+        x        = trial_profile[c(1, 2, 14),i],
         format   ="html",
         color    = 
-          ifelse(trial_profile[2, i] + trial_profile[13, i] != trial_profile[1, i], "red", ""),
+          ifelse(trial_profile[2, i] + trial_profile[14, i] != trial_profile[1, i], "red", ""),
         tooltip  = 
-          ifelse(trial_profile[2, i] + trial_profile[13, i] != trial_profile[1, i], 
+          ifelse(trial_profile[2, i] + trial_profile[14, i] != trial_profile[1, i], 
                  "Visited HH must be equal to the sum of interviewed + NOT interviewed", "")
       )
     }
@@ -556,15 +570,15 @@ trialProfileOfArea = function(hhs_data, study_area) {
         kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
                         font_size = font_size) %>%
         row_spec(0, bold = T, color = "white", background = "#494949") %>%
-        row_spec(c(1, 2, 3, 13), bold = T) %>%
-        add_indent(c(9, 10, 11, 12))
+        row_spec(c(1, 2, 3, 14), bold = T) %>%
+        add_indent(c(10, 11, 12, 13))
       )
       print(kable(trial_profile_checked[,(middle + 3):number_of_columns], "html", escape = F) %>%
         kable_styling(bootstrap_options = c("striped", "hover", "responsive"), font_size = 
                         font_size) %>%
         row_spec(0, bold = T, color = "white", background = "#494949") %>%
-        row_spec(c(1, 2, 3, 13), bold = T) %>%
-        add_indent(c(9, 10, 11, 12)) %>%
+        row_spec(c(1, 2, 3, 14), bold = T) %>%
+        add_indent(c(10, 11, 12, 13)) %>%
         footnote(
           general_title = "Notes:",
           general = "Colored cells are consistency errors. Hover over these cells to display a 
@@ -581,8 +595,8 @@ trialProfileOfArea = function(hhs_data, study_area) {
         kable_styling(bootstrap_options = c("striped", "hover", "responsive"), 
                         font_size = font_size) %>%
         row_spec(0, bold = T, color = "white", background = "#494949") %>%
-        row_spec(c(1, 2, 3, 13), bold = T) %>%
-        add_indent(c(9, 10, 11, 12)) %>%
+        row_spec(c(1, 2, 3, 14), bold = T) %>%
+        add_indent(c(10, 11, 12, 13)) %>%
         footnote(
           general_title = "Notes:",
           general = "Colored cells are consistency errors. Hover over these cells to display a 
